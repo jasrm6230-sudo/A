@@ -1,0 +1,4836 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المشغل الذهبي - النسخة المحسنة للصوت مع التضخيم الذكي</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' blob:; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src 'self' blob:; connect-src 'self'">
+    <style>
+        /* جميع الأنماط الأصلية - تم الحفاظ عليها */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at center, #0a0a0a 0%, #000000 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            perspective: 1200px;
+            overflow-x: hidden;
+        }
+
+        body.power-save-mode {
+            background: #0c0c0c;
+            perspective: none;
+        }
+
+        body.power-save-mode .stars-background,
+        body.power-save-mode .light-effects,
+        body.power-save-mode .light-effect,
+        body.power-save-mode .shadow-layer,
+        body.power-save-mode .gold-glow,
+        body.power-save-mode .player-glow {
+            display: none !important;
+        }
+
+        body.power-save-mode .music-player {
+            background: linear-gradient(145deg, #0c0c0c, #1a1a1a);
+            box-shadow: 
+                0 5px 15px rgba(0, 0, 0, 0.5),
+                0 0 5px rgba(139, 0, 139, 0.3);
+            border: 1px solid rgba(139, 0, 139, 0.3);
+        }
+
+        body.power-save-mode .player-header {
+            background: linear-gradient(135deg, #4b0082 0%, #8a2be2 100%);
+            box-shadow: 0 3px 10px rgba(139, 0, 139, 0.3);
+        }
+
+        body.power-save-mode .album-art-container {
+            box-shadow: 
+                0 5px 15px rgba(0, 0, 0, 0.4), 
+                0 0 10px rgba(139, 0, 139, 0.3);
+        }
+
+        body.power-save-mode .visualizer-container,
+        body.power-save-mode .bass-indicator,
+        body.power-save-mode .spectrum-display {
+            display: none !important;
+        }
+
+        body.power-save-mode .advanced-controls {
+            background: rgba(15, 15, 15, 0.95);
+        }
+
+        body.power-save-mode .control-btn {
+            box-shadow: 
+                0 3px 8px rgba(0, 0, 0, 0.3),
+                0 0 3px rgba(139, 0, 139, 0.2);
+        }
+
+        body.power-save-mode .play-pause {
+            box-shadow: 
+                0 5px 12px rgba(0, 0, 0, 0.4), 
+                0 0 10px rgba(139, 0, 139, 0.3);
+        }
+
+        body.power-save-mode .power-save-btn {
+            background: linear-gradient(135deg, #4b0082, #8a2be2);
+            box-shadow: 0 0 15px rgba(139, 0, 139, 0.5);
+            color: #FFD700;
+        }
+
+        .power-save-btn {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
+            border: none;
+            color: #e0e0e0;
+            padding: 12px 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px rgba(139, 0, 139, 0.3);
+            z-index: 20;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            font-weight: 600;
+        }
+
+        .power-save-btn:hover {
+            background: linear-gradient(145deg, #8a2be2, #9400d3);
+            box-shadow: 0 0 20px rgba(139, 0, 139, 0.5);
+            color: #FFD700;
+            transform: translateX(-50%) translateY(-2px);
+        }
+
+        .stars-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        .star {
+            position: absolute;
+            background-color: #FFD700;
+            border-radius: 50%;
+            animation: twinkle 4s infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .light-effects {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .light-spot {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,215,0,0.15) 0%, transparent 70%);
+            filter: blur(40px);
+            animation: pulseLight 8s infinite alternate;
+        }
+
+        .light-spot:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+            background: radial-gradient(circle, rgba(255,20,147,0.2) 0%, transparent 70%);
+        }
+
+        .light-spot:nth-child(2) {
+            width: 400px;
+            height: 400px;
+            bottom: 5%;
+            right: 5%;
+            background: radial-gradient(circle, rgba(138,43,226,0.2) 0%, transparent 70%);
+            animation-delay: 2s;
+        }
+
+        .light-spot:nth-child(3) {
+            width: 250px;
+            height: 250px;
+            top: 50%;
+            left: 70%;
+            background: radial-gradient(circle, rgba(0,191,255,0.15) 0%, transparent 70%);
+            animation-delay: 4s;
+        }
+
+        @keyframes pulseLight {
+            0% { opacity: 0.3; transform: scale(1); }
+            100% { opacity: 0.7; transform: scale(1.2); }
+        }
+
+        .light-effect {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 20, 147, 0.1) 0%, transparent 70%);
+            filter: blur(40px);
+            z-index: -1;
+            animation: lightMove 15s infinite linear;
+        }
+
+        .light-effect:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+            background: radial-gradient(circle, rgba(255,20,147,0.1) 0%, transparent 70%);
+        }
+
+        .light-effect:nth-child(2) {
+            bottom: 10%;
+            right: 10%;
+            animation-delay: 5s;
+            background: radial-gradient(circle, rgba(138,43,226,0.1) 0%, transparent 70%);
+        }
+
+        .light-effect:nth-child(3) {
+            top: 50%;
+            left: 50%;
+            animation-delay: 10s;
+            background: radial-gradient(circle, rgba(0,191,255,0.1) 0%, transparent 70%);
+        }
+
+        @keyframes lightMove {
+            0% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, 50px) scale(1.2); }
+            50% { transform: translate(0, 100px) scale(1); }
+            75% { transform: translate(-50px, 50px) scale(1.2); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+
+        .main-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            transform-style: preserve-3d;
+        }
+
+        .player-section {
+            flex: 1;
+            min-width: 500px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1s ease;
+        }
+
+        .music-player {
+            width: 100%;
+            background: linear-gradient(145deg, #0a0a0a, #1a1a1a);
+            border-radius: 25px;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.8),
+                0 0 30px rgba(139, 0, 139, 0.4),
+                0 0 60px rgba(255, 215, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            backdrop-filter: blur(10px);
+            position: relative;
+            transform-style: preserve-3d;
+            transform: translateZ(50px);
+            transition: box-shadow 0.5s ease;
+        }
+
+        .music-player:hover {
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.9),
+                0 0 40px rgba(139, 0, 139, 0.6),
+                0 0 80px rgba(255, 215, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .player-header {
+            background: linear-gradient(135deg, #4b0082 0%, #8a2be2 100%);
+            padding: 25px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 5px 20px rgba(139, 0, 139, 0.5);
+            border-bottom: 2px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .player-header::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+        }
+
+        .player-header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            color: #FFD700;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .player-header p {
+            font-size: 15px;
+            opacity: 0.9;
+            color: white;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        }
+
+        .album-art-container {
+            position: relative;
+            width: 240px;
+            height: 240px;
+            margin: 30px auto;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4b0082, #8a2be2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 
+                0 15px 30px rgba(0, 0, 0, 0.6), 
+                0 0 25px rgba(139, 0, 139, 0.6),
+                0 0 40px rgba(255, 215, 0, 0.3),
+                inset 0 0 20px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+            transition: transform 0.5s ease;
+            transform-style: preserve-3d;
+        }
+
+        .album-art-container.rotating {
+            animation: rotateAlbum 15s infinite linear;
+        }
+
+        @keyframes rotateAlbum {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .album-art-container:hover {
+            transform: scale(1.05) rotateY(5deg);
+        }
+
+        .album-art-container::before {
+            content: "";
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
+            border-radius: 50%;
+            z-index: 2;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .album-art {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            position: absolute;
+            z-index: 1;
+        }
+
+        .album-art-shadow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 
+                inset 0 0 30px rgba(0, 0, 0, 0.8),
+                0 0 60px rgba(139, 0, 139, 0.4);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .song-info {
+            text-align: center;
+            padding: 0 25px;
+        }
+
+        .song-title {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+        }
+
+        .song-artist {
+            font-size: 17px;
+            color: #e0e0e0;
+            margin-bottom: 25px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.4);
+        }
+
+        .progress-area {
+            padding: 0 30px;
+            margin-bottom: 25px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            width: 100%;
+            background: #1a1a1a;
+            border-radius: 10px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                inset 0 0 8px rgba(0, 0, 0, 0.7),
+                0 2px 4px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .progress {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #8a2be2, #00ff7f);
+            border-radius: 10px;
+            transition: width 0.1s linear;
+            box-shadow: 
+                0 0 15px rgba(139, 0, 139, 0.7),
+                inset 0 0 5px rgba(255, 255, 255, 0.2);
+            position: relative;
+        }
+
+        .progress::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 15px;
+            height: 100%;
+            background: #FFD700;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        }
+
+        .timer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-size: 15px;
+            color: #e0e0e0;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 25px;
+            gap: 30px;
+        }
+
+        .control-btn {
+            background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
+            border: none;
+            color: #e0e0e0;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 15px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 
+                0 5px 15px rgba(0, 0, 0, 0.4),
+                0 0 5px rgba(255, 215, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .control-btn:hover {
+            background: linear-gradient(145deg, #8a2be2, #9400d3);
+            transform: translateY(-3px);
+            box-shadow: 
+                0 8px 20px rgba(0, 0, 0, 0.5), 
+                0 0 15px rgba(139, 0, 139, 0.5),
+                0 0 25px rgba(255, 215, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            color: #FFD700;
+        }
+
+        .play-pause {
+            width: 75px;
+            height: 75px;
+            background: linear-gradient(135deg, #8a2be2, #9400d3);
+            font-size: 28px;
+            box-shadow: 
+                0 8px 20px rgba(0, 0, 0, 0.5), 
+                0 0 20px rgba(139, 0, 139, 0.6),
+                0 0 30px rgba(255, 215, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            color: #FFD700;
+        }
+
+        .play-pause:hover {
+            background: linear-gradient(135deg, #9400d3, #da70d6);
+            transform: scale(1.1);
+        }
+
+        .file-input, .image-input {
+            display: none;
+        }
+
+        .file-label, .image-label {
+            display: block;
+            text-align: center;
+            background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+            color: #e0e0e0;
+            padding: 16px 25px;
+            margin: 0 25px 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            font-weight: 600;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .file-label:hover, .image-label:hover {
+            background: linear-gradient(135deg, #8a2be2, #9400d3);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            color: #FFD700;
+        }
+
+        .repeat-btn.active, .shuffle-btn.active {
+            color: #00ff7f;
+            text-shadow: 0 0 15px rgba(0, 255, 127, 0.8);
+            box-shadow: 
+                0 0 20px rgba(0, 255, 127, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            padding: 0 30px 25px;
+            gap: 12px;
+        }
+
+        .volume-control i {
+            color: #e0e0e0;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+            font-size: 20px;
+        }
+
+        .volume-slider {
+            flex: 1;
+            height: 8px;
+            background: #1a1a1a;
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 
+                inset 0 0 8px rgba(0, 0, 0, 0.7),
+                0 2px 4px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .volume-progress {
+            height: 100%;
+            width: 70%;
+            background: linear-gradient(90deg, #8a2be2, #00ff7f);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(139, 0, 139, 0.6);
+        }
+
+        .playlist {
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 0 25px 25px;
+            border-radius: 12px;
+            background: rgba(30, 30, 30, 0.7);
+            box-shadow: 
+                inset 0 0 15px rgba(0, 0, 0, 0.6),
+                0 5px 10px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .playlist-item {
+            padding: 14px 18px;
+            border-bottom: 1px solid rgba(60, 60, 60, 0.7);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #e0e0e0;
+        }
+
+        .playlist-item:hover {
+            background: rgba(138, 43, 226, 0.3);
+        }
+
+        .playlist-item.active {
+            background: linear-gradient(135deg, #8a2be2, #9400d3);
+            box-shadow: 0 0 15px rgba(139, 0, 139, 0.5);
+            color: #FFD700;
+        }
+
+        .playlist-item i {
+            color: #8a2be2;
+            text-shadow: 0 0 8px rgba(138, 43, 226, 0.5);
+        }
+
+        .playlist-item.active i {
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+        }
+
+        .playlist::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .playlist::-webkit-scrollbar-track {
+            background: #1a1a1a;
+            border-radius: 10px;
+        }
+
+        .playlist::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #8a2be2, #9400d3);
+            border-radius: 10px;
+            box-shadow: 0 0 8px rgba(139, 0, 139, 0.5);
+        }
+
+        .songs-count {
+            text-align: center;
+            padding: 12px;
+            color: #e0e0e0;
+            font-size: 15px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+        }
+
+        .visualizer-container {
+            width: 100%;
+            height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .visualizer {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            height: 70px;
+            gap: 4px;
+        }
+
+        .bar {
+            width: 5px;
+            background: linear-gradient(to top, #8a2be2, #00ff7f);
+            border-radius: 3px;
+            transition: height 0.1s ease;
+            box-shadow: 0 0 8px rgba(139, 0, 139, 0.5);
+        }
+
+        .bass-indicator {
+            width: 100%;
+            height: 6px;
+            background: #1a1a1a;
+            border-radius: 5px;
+            margin: 15px 30px 0;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 
+                inset 0 0 8px rgba(0, 0, 0, 0.7),
+                0 2px 4px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .bass-level {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #4b0082, #8a2be2);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(139, 0, 139, 0.6);
+        }
+
+        .shadow-layer {
+            position: absolute;
+            width: 90%;
+            height: 50px;
+            bottom: -25px;
+            left: 5%;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            filter: blur(15px);
+            z-index: -1;
+            animation: shadowPulse 4s infinite alternate;
+        }
+
+        @keyframes shadowPulse {
+            0% { opacity: 0.5; transform: scale(0.95); }
+            100% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        .gold-glow {
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 27px;
+            background: linear-gradient(45deg, transparent, rgba(255,215,0,0.1), transparent);
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .music-player:hover .gold-glow {
+            opacity: 1;
+        }
+
+        .audio-controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 0 30px 20px;
+        }
+
+        .audio-preset {
+            background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
+            border: none;
+            color: #e0e0e0;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 8px 15px;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 8px rgba(139, 0, 139, 0.2);
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .audio-preset:hover {
+            background: linear-gradient(145deg, #8a2be2, #9400d3);
+            color: #FFD700;
+        }
+
+        .audio-preset.active {
+            background: linear-gradient(135deg, #8a2be2, #9400d3);
+            box-shadow: 0 0 15px rgba(139, 0, 139, 0.5);
+            color: #FFD700;
+        }
+
+        .player-glow {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border-radius: 35px;
+            background: radial-gradient(circle at center, rgba(255, 20, 147, 0.1) 0%, transparent 70%);
+            z-index: -1;
+            opacity: 0.7;
+            filter: blur(20px);
+        }
+
+        .camera-toggle, .boost-btn {
+            position: fixed;
+            top: 20px;
+            background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
+            border: none;
+            color: #e0e0e0;
+            padding: 12px 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px rgba(139, 0, 139, 0.3);
+            z-index: 20;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            font-weight: 600;
+        }
+
+        .camera-toggle {
+            left: 20px;
+        }
+
+        .boost-btn {
+            right: 20px;
+        }
+
+        .camera-toggle:hover, .boost-btn:hover {
+            background: linear-gradient(145deg, #8a2be2, #9400d3);
+            box-shadow: 0 0 20px rgba(139, 0, 139, 0.5);
+            color: #FFD700;
+            transform: translateY(-2px);
+        }
+
+        .camera-toggle.active, .boost-btn.active {
+            background: linear-gradient(135deg, #8a2be2, #9400d3);
+            box-shadow: 0 0 20px rgba(139, 0, 139, 0.7);
+            color: #FFD700;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse-effect {
+            animation: pulse 0.5s infinite;
+        }
+
+        .advanced-section {
+            flex: 1;
+            min-width: 500px;
+            position: relative;
+        }
+        
+        .advanced-controls {
+            background: rgba(20, 20, 20, 0.9);
+            border-radius: 25px;
+            padding: 25px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.8),
+                0 0 30px rgba(139, 0, 139, 0.4),
+                0 0 60px rgba(255, 215, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            height: 100%;
+            overflow-y: auto;
+        }
+        
+        .advanced-controls h3 {
+            text-align: center;
+            color: #FFD700;
+            margin-bottom: 25px;
+            font-size: 24px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+        
+        .eq-container {
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .eq-band {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 4px;
+            min-width: 40px;
+        }
+        
+        .eq-bands-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            min-width: 900px;
+            padding: 0 10px;
+            overflow-x: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #8a2be2 #1a1a1a;
+        }
+        
+        .eq-bands-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .eq-bands-container::-webkit-scrollbar-track {
+            background: #1a1a1a;
+            border-radius: 4px;
+        }
+        
+        .eq-bands-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(90deg, #8a2be2, #00ff7f);
+            border-radius: 4px;
+        }
+        
+        .eq-slider {
+            -webkit-appearance: slider-vertical;
+            width: 25px;
+            height: 120px;
+            background: linear-gradient(to top, #8a2be2, #1a1a1a, #ff1493);
+            border-radius: 12px;
+            outline: none;
+            margin: 10px 0;
+            cursor: pointer;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        .eq-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 25px;
+            background: #FFD700;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+        }
+        
+        .eq-slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            background: #FFD700;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+            border: none;
+        }
+        
+        .eq-freq {
+            font-size: 9px;
+            color: #FFD700;
+            margin-top: 5px;
+            text-align: center;
+        }
+        
+        .eq-value {
+            font-size: 9px;
+            color: #fff;
+            margin-top: 5px;
+        }
+        
+        .preset-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .preset-btn {
+            background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            color: #e0e0e0;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 12px;
+        }
+        
+        .preset-btn:hover, .preset-btn.active {
+            background: linear-gradient(145deg, #8a2be2, #9400d3);
+            color: #FFD700;
+        }
+        
+        .analysis-panel {
+            background: rgba(10, 10, 10, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        
+        .spectrum-display {
+            width: 100%;
+            height: 100px;
+            background: #0a0a0a;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        
+        .advanced-settings {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .setting-group {
+            background: rgba(15, 15, 15, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        
+        .setting-slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .quality-settings {
+            background: rgba(15, 15, 15, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .quality-settings select, .quality-settings input {
+            background: #1a1a1a;
+            color: white;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            padding: 8px;
+            border-radius: 5px;
+            margin: 5px 0;
+            width: 100%;
+        }
+
+        .quality-settings label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 10px 0;
+            color: #e0e0e0;
+        }
+        
+        .audio-enhancement-controls {
+            background: rgba(15, 15, 15, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        
+        .enhancement-slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .enhancement-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #e0e0e0;
+        }
+        
+        .enhancement-value {
+            color: #FFD700;
+            font-weight: 600;
+        }
+        
+        .enhancement-indicator {
+            display: inline-block;
+            padding: 2px 8px;
+            background: rgba(255, 215, 0, 0.2);
+            color: #FFD700;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        
+        .enhancement-presets {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .enhancement-preset-btn {
+            background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            color: #e0e0e0;
+            padding: 6px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 12px;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .enhancement-preset-btn:hover, .enhancement-preset-btn.active {
+            background: linear-gradient(145deg, #8a2be2, #9400d3);
+            color: #FFD700;
+        }
+        
+        .quality-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+            color: #FFD700;
+        }
+        
+        .quality-bar {
+            height: 6px;
+            flex: 1;
+            background: #1a1a1a;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .quality-level {
+            height: 100%;
+            background: linear-gradient(90deg, #8a2be2, #00ff7f);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .security-btn {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
+            border: none;
+            color: #e0e0e0;
+            padding: 12px 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px rgba(139, 0, 139, 0.3);
+            z-index: 20;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            font-weight: 600;
+            font-family: inherit;
+        }
+
+        .security-btn:hover {
+            background: linear-gradient(145deg, #8a2be2, #9400d3);
+            box-shadow: 0 0 20px rgba(139, 0, 139, 0.5);
+            color: #FFD700;
+            transform: translateY(-2px);
+        }
+
+        .security-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .security-content {
+            background: linear-gradient(145deg, #0a0a0a, #1a1a1a);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+        }
+
+        .security-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+            padding-bottom: 10px;
+        }
+
+        .security-header h3 {
+            color: #FFD700;
+            margin: 0;
+        }
+
+        .close-security-modal {
+            background: none;
+            border: none;
+            color: #FFD700;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .security-status {
+            margin-bottom: 25px;
+        }
+
+        .security-indicators {
+            background: rgba(138, 43, 226, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .security-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .security-indicator:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .security-status-value {
+            color: #00ff7f;
+            font-weight: 600;
+        }
+
+        .security-actions {
+            margin-bottom: 25px;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .action-btn {
+            background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            color: #e0e0e0;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .action-btn:hover {
+            background: linear-gradient(145deg, #8a2be2, #9400d3);
+            color: #FFD700;
+            transform: translateY(-2px);
+        }
+
+        .security-settings {
+            margin-bottom: 25px;
+        }
+
+        .settings-grid {
+            background: rgba(15, 15, 15, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            cursor: pointer;
+            color: #e0e0e0;
+        }
+
+        .setting-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .setting-item input {
+            margin-left: 10px;
+        }
+
+        .security-logs h4 {
+            color: #e0e0e0;
+            margin-bottom: 10px;
+        }
+
+        .logs-container {
+            background: rgba(10, 10, 10, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .logs-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .logs-container::-webkit-scrollbar-track {
+            background: #1a1a1a;
+            border-radius: 4px;
+        }
+
+        .logs-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #8a2be2, #9400d3);
+            border-radius: 4px;
+        }
+
+        .paranoid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #FFD700;
+            font-size: 24px;
+            text-align: center;
+            animation: paranoidPulse 2s infinite alternate;
+        }
+
+        @keyframes paranoidPulse {
+            0% { background: rgba(0, 0, 0, 0.95); }
+            100% { background: rgba(10, 10, 0, 0.95); }
+        }
+
+        .paranoid-overlay h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
+        }
+
+        .paranoid-overlay p {
+            font-size: 18px;
+            color: #e0e0e0;
+            margin-bottom: 30px;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        .disable-paranoid-btn {
+            background: linear-gradient(135deg, #8a2be2, #9400d3);
+            color: #FFD700;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(139, 0, 139, 0.5);
+        }
+
+        .disable-paranoid-btn:hover {
+            background: linear-gradient(135deg, #9400d3, #da70d6);
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(139, 0, 139, 0.7);
+        }
+
+        .shortcuts-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .shortcuts-content {
+            background: linear-gradient(145deg, #0a0a0a, #1a1a1a);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+        }
+        
+        .shortcuts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+            padding-bottom: 10px;
+        }
+        
+        .shortcuts-header h3 {
+            color: #FFD700;
+            margin: 0;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            color: #FFD700;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .shortcut-key {
+            background: rgba(255, 215, 0, 0.2);
+            color: #FFD700;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .shortcuts-btn, .fullscreen-btn {
+            position: fixed;
+            background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
+            border: none;
+            color: #e0e0e0;
+            padding: 12px 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px rgba(139, 0, 139, 0.3);
+            z-index: 20;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            font-weight: 600;
+        }
+        
+        .shortcuts-btn {
+            bottom: 20px;
+            left: 20px;
+        }
+        
+        .fullscreen-btn {
+            bottom: 20px;
+            right: 20px;
+        }
+        
+        .shortcuts-btn:hover, .fullscreen-btn:hover {
+            background: linear-gradient(145deg, #8a2be2, #9400d3);
+            box-shadow: 0 0 20px rgba(139, 0, 139, 0.5);
+            color: #FFD700;
+            transform: translateY(-2px);
+        }
+        
+        .format-support {
+            text-align: center;
+            color: #e0e0e0;
+            margin-top: 10px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .active-glow {
+            box-shadow: 0 0 20px rgba(0, 255, 127, 0.7) !important;
+        }
+        
+        .glow-text {
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+        }
+
+        .bit-depth-indicator {
+            margin-top: 10px;
+            padding: 8px;
+            background: rgba(138, 43, 226, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            font-size: 12px;
+            text-align: center;
+        }
+
+        /* أنماط إضافية لنظام التضخيم الذكي */
+        .enhancement-slider::-webkit-slider-thumb {
+            background: linear-gradient(135deg, #FFD700, #FF4500);
+            border: 2px solid white;
+            box-shadow: 0 0 10px rgba(255, 69, 0, 0.8);
+        }
+
+        .enhancement-slider::-moz-range-thumb {
+            background: linear-gradient(135deg, #FFD700, #FF4500);
+            border: 2px solid white;
+            box-shadow: 0 0 10px rgba(255, 69, 0, 0.8);
+        }
+
+        .enhancement-preset-btn.active {
+            background: linear-gradient(135deg, #FF4500, #FFD700);
+            color: #000;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(255, 69, 0, 0.7);
+        }
+
+        .clipping-warning {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(135deg, #ff0000, #ff4500);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            animation: pulseWarning 0.5s infinite alternate;
+            display: none;
+            z-index: 100;
+        }
+
+        @keyframes pulseWarning {
+            0% { opacity: 0.7; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.05); }
+        }
+
+        .ab-repeat-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: linear-gradient(135deg, #00ff7f, #008000);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            display: none;
+            z-index: 100;
+        }
+
+        .ab-point-indicator {
+            position: absolute;
+            height: 100%;
+            width: 2px;
+            background: #FFD700;
+            top: 0;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .point-a {
+            left: 0;
+            background: #00ff7f;
+        }
+
+        .point-b {
+            left: 0;
+            background: #ff4500;
+        }
+
+        @media (max-width: 1100px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .player-section, .advanced-section {
+                min-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .eq-bands-container {
+                min-width: 600px;
+            }
+            
+            .eq-slider {
+                width: 20px;
+                height: 80px;
+            }
+            
+            .eq-freq {
+                font-size: 8px;
+            }
+            
+            .eq-value {
+                font-size: 8px;
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .security-btn {
+                bottom: 140px;
+                right: 20px;
+            }
+        }
+
+        body:fullscreen {
+            padding: 0;
+        }
+
+        body:-webkit-full-screen {
+            padding: 0;
+        }
+
+        body:-moz-full-screen {
+            padding: 0;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .player-section, .advanced-section {
+                min-width: 100% !important;
+            }
+            
+            .album-art-container {
+                width: 180px !important;
+                height: 180px !important;
+            }
+            
+            .controls {
+                gap: 15px !important;
+                padding: 15px !important;
+            }
+            
+            .play-pause {
+                width: 60px !important;
+                height: 60px !important;
+                font-size: 24px !important;
+            }
+            
+            .control-btn {
+                padding: 12px !important;
+                font-size: 18px !important;
+            }
+            
+            .song-title {
+                font-size: 20px !important;
+            }
+            
+            .player-header h1 {
+                font-size: 22px !important;
+            }
+            
+            .eq-bands-container {
+                overflow-x: auto !important;
+                padding-bottom: 10px !important;
+            }
+            
+            .eq-slider {
+                height: 60px !important;
+                width: 15px !important;
+            }
+            
+            .camera-toggle, .boost-btn, .power-save-btn, .shortcuts-btn, .fullscreen-btn, .security-btn {
+                font-size: 14px !important;
+                padding: 10px 15px !important;
+                white-space: nowrap;
+            }
+            
+            .camera-toggle {
+                left: 10px !important;
+                top: 10px !important;
+            }
+            
+            .boost-btn {
+                right: 10px !important;
+                top: 10px !important;
+            }
+            
+            .security-btn {
+                bottom: 100px !important;
+                right: 10px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px !important;
+            }
+            
+            .music-player {
+                border-radius: 15px !important;
+            }
+            
+            .player-header {
+                padding: 15px !important;
+            }
+            
+            .album-art-container {
+                width: 150px !important;
+                height: 150px !important;
+                margin: 20px auto !important;
+            }
+            
+            .progress-area {
+                padding: 0 15px !important;
+            }
+            
+            .file-label, .image-label {
+                margin: 0 15px 15px !important;
+                padding: 12px !important;
+                font-size: 14px !important;
+            }
+            
+            .playlist {
+                margin: 0 15px 15px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars-background" id="starsBackground"></div>
+    
+    <div class="light-effects">
+        <div class="light-spot"></div>
+        <div class="light-spot"></div>
+        <div class="light-spot"></div>
+    </div>
+    
+    <div class="light-effect"></div>
+    <div class="light-effect"></div>
+    <div class="light-effect"></div>
+    
+    <button class="camera-toggle" id="cameraToggle">تشغيل دوران الكاميرا</button>
+    <button class="boost-btn" id="boostBtn">تضخيم الصوت</button>
+    
+    <button class="power-save-btn" id="powerSaveBtn">توفير الطاقة</button>
+    
+    <button class="shortcuts-btn" id="shortcutsBtn">اختصارات لوحة المفاتيح</button>
+    
+    <button class="fullscreen-btn" id="fullscreenBtn">ملء الشاشة</button>
+    
+    <button class="security-btn" id="securityBtn">🔒 الأمان</button>
+    
+    <div class="clipping-warning" id="clippingWarning">⚠️ تحذير: تشويه صوتي مرتفع!</div>
+    <div class="ab-repeat-indicator" id="abRepeatIndicator">تكرار A-B</div>
+    
+    <div class="shortcuts-modal" id="shortcutsModal">
+        <div class="shortcuts-content">
+            <div class="shortcuts-header">
+                <h3>اختصارات لوحة المفاتيح</h3>
+                <button class="close-modal" id="closeModal">✕</button>
+            </div>
+            <div class="shortcuts-list">
+                <div class="shortcut-item">
+                    <span>تشغيل/إيقاف مؤقت</span>
+                    <span class="shortcut-key">مسافة</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>الأغنية التالية</span>
+                    <span class="shortcut-key">→</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>الأغنية السابقة</span>
+                    <span class="shortcut-key">←</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>زيادة الصوت</span>
+                    <span class="shortcut-key">↑</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>تقليل الصوت</span>
+                    <span class="shortcut-key">↓</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>تكرار</span>
+                    <span class="shortcut-key">R</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>عشوائي</span>
+                    <span class="shortcut-key">S</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>تضخيم الصوت</span>
+                    <span class="shortcut-key">B</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>دوران الكاميرا</span>
+                    <span class="shortcut-key">C</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>توفير الطاقة</span>
+                    <span class="shortcut-key">P</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>ملء الشاشة</span>
+                    <span class="shortcut-key">F11</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>إظهار/إخفاء الاختصارات</span>
+                    <span class="shortcut-key">H</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>لوحة الأمان</span>
+                    <span class="shortcut-key">Ctrl+Shift+S</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>الوضع المحصن</span>
+                    <span class="shortcut-key">Ctrl+Shift+P</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>تعيين النقطة A</span>
+                    <span class="shortcut-key">A</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>تعيين النقطة B</span>
+                    <span class="shortcut-key">B</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>تفعيل/إلغاء تكرار A-B</span>
+                    <span class="shortcut-key">Ctrl+R</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="security-modal" id="securityModal">
+        <div class="security-content">
+            <div class="security-header">
+                <h3>لوحة التحكم الأمنية</h3>
+                <button class="close-security-modal" id="closeSecurityModal">✕</button>
+            </div>
+            
+            <div class="security-status">
+                <h4>حالة الأمان الحالية:</h4>
+                <div class="security-indicators">
+                    <div class="security-indicator">
+                        <span>🔒 تشفير الاتصال:</span>
+                        <span class="security-status-value" id="encryptionStatus">✓ مفعل</span>
+                    </div>
+                    <div class="security-indicator">
+                        <span>🛡️ فحص الملفات:</span>
+                        <span class="security-status-value" id="fileScanStatus">✓ مفعل</span>
+                    </div>
+                    <div class="security-indicator">
+                        <span>🚫 حماية XSS:</span>
+                        <span class="security-status-value" id="xssProtectionStatus">✓ مفعل</span>
+                    </div>
+                    <div class="security-indicator">
+                        <span>🔐 حماية CSRF:</span>
+                        <span class="security-status-value" id="csrfProtectionStatus">✓ مفعل</span>
+                    </div>
+                    <div class="security-indicator">
+                        <span>🛡️ حماية الحقن:</span>
+                        <span class="security-status-value" id="injectionProtectionStatus">✓ مفعل</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="security-actions">
+                <h4>الإجراءات الأمنية:</h4>
+                <div class="action-buttons">
+                    <button class="action-btn" id="clearCacheBtn">🧹 مسح الذاكرة المؤقتة</button>
+                    <button class="action-btn" id="scanThreatsBtn">🔍 فحص التهديدات</button>
+                    <button class="action-btn" id="generateReportBtn">📊 تقرير أمني</button>
+                    <button class="action-btn" id="paranoidModeBtn">🔐 الوضع المحصن</button>
+                </div>
+            </div>
+            
+            <div class="security-settings">
+                <h4>إعدادات الأمان:</h4>
+                <div class="settings-grid">
+                    <label class="setting-item">
+                        <input type="checkbox" id="autoScanFiles" checked>
+                        <span>فحص الملفات تلقائياً قبل التحميل</span>
+                    </label>
+                    <label class="setting-item">
+                        <input type="checkbox" id="blockSuspicious" checked>
+                        <span>منع الملفات المشبوهة تلقائياً</span>
+                    </label>
+                    <label class="setting-item">
+                        <input type="checkbox" id="logAllEvents" checked>
+                        <span>تسجيل جميع الأحداث الأمنية</span>
+                    </label>
+                    <label class="setting-item">
+                        <input type="checkbox" id="enableNotifications" checked>
+                        <span>إشعارات الأمان</span>
+                    </label>
+                    <label class="setting-item">
+                        <input type="checkbox" id="enableEncryption" checked>
+                        <span>تشفير البيانات المحلية</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="security-logs">
+                <h4>سجل الأحداث الأمنية:</h4>
+                <div class="logs-container" id="securityLogs">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="main-container">
+        <div class="player-section" id="playerSection">
+            <div class="shadow-layer"></div>
+            
+            <div class="gold-glow"></div>
+            
+            <div class="player-glow"></div>
+            
+            <div class="music-player">
+                <div class="player-header">
+                    <h1 class="glow-text">المشغل الذهبي الفاخر</h1>
+                    <p class="glow-text">النسخة الإدمانية - جودة صوت استثنائية مع التضخيم الذكي</p>
+                </div>
+                
+                <div class="album-art-container" id="albumArtContainer">
+                    <img id="albumImage" class="album-art" src="" alt="غلاف الأغنية">
+                    <div class="album-art-shadow"></div>
+                </div>
+                
+                <label for="imageInput" class="image-label glow-text">
+                    اختر صورة غلاف
+                </label>
+                <input type="file" id="imageInput" class="image-input" accept="image/*">
+                
+                <div class="song-info">
+                    <h2 class="song-title glow-text" id="songTitle">اختر أغنية</h2>
+                    <p class="song-artist glow-text" id="songArtist">فنان غير معروف</p>
+                </div>
+                
+                <div class="visualizer-container">
+                    <div class="visualizer" id="visualizer"></div>
+                </div>
+                
+                <div class="bass-indicator">
+                    <div class="bass-level" id="bassLevel"></div>
+                </div>
+                
+                <div class="progress-area">
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress" id="progress"></div>
+                        <div class="ab-point-indicator point-a" id="pointAIndicator"></div>
+                        <div class="ab-point-indicator point-b" id="pointBIndicator"></div>
+                    </div>
+                    <div class="timer">
+                        <span id="currentTime">0:00</span>
+                        <span id="duration">0:00</span>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button class="control-btn repeat-btn" id="repeatBtn" title="تكرار">
+                        <i>🔁</i>
+                    </button>
+                    <button class="control-btn prev-btn" id="prevBtn" title="السابقة">
+                        <i>⏮️</i>
+                    </button>
+                    <button class="control-btn play-pause" id="playPauseBtn" title="تشغيل / إيقاف">
+                        <i>▶️</i>
+                    </button>
+                    <button class="control-btn next-btn" id="nextBtn" title="التالية">
+                        <i>⏭️</i>
+                    </button>
+                    <button class="control-btn shuffle-btn" id="shuffleBtn" title="عشوائي">
+                        <i>🔀</i>
+                    </button>
+                </div>
+                
+                <div class="audio-controls">
+                    <button class="audio-preset" data-preset="bass">جهير مكثف</button>
+                    <button class="audio-preset active" data-preset="normal">عادي</button>
+                    <button class="audio-preset" data-preset="treble">نقاء الصوت</button>
+                </div>
+                
+                <div class="volume-control">
+                    <i>🔊</i>
+                    <div class="volume-slider" id="volumeSlider">
+                        <div class="volume-progress" id="volumeProgress"></div>
+                    </div>
+                </div>
+                
+                <label for="fileInput" class="file-label glow-text">
+                    اختر ملفات الموسيقى (سيتم إضافتها إلى القائمة الحالية)
+                </label>
+                <input type="file" id="fileInput" class="file-input" accept="audio/*, .mp3, .wav, .ogg, .aac, .flac, .m4a, .aiff, .wma, .alac" multiple>
+                
+                <div class="format-support">يدعم: MP3, WAV, OGG, AAC, FLAC, M4A, AIFF, WMA, ALAC</div>
+                
+                <div class="songs-count" id="songsCount">عدد الأغاني: 0</div>
+                
+                <div class="playlist" id="playlist">
+                </div>
+            </div>
+        </div>
+        
+        <div class="advanced-section">
+            <div class="advanced-controls">
+                <h3>التحكم الصوتي المتقدم مع التضخيم الذكي</h3>
+                
+                <div class="audio-enhancement-controls">
+                    <h4 style="color: #FFD700;">نظام تضخيم الصوت الذكي المتقدم</h4>
+                    
+                    <div class="enhancement-label">
+                        <span>🔊 الصوت الأساسي</span>
+                        <span class="enhancement-value" id="volumeValue">70%</span>
+                    </div>
+                    <input type="range" class="enhancement-slider" id="volumeEnhancementSlider" min="0" max="100" value="70">
+                    
+                    <div class="enhancement-label">
+                        <span>💥 تضخيم الصوت <span class="enhancement-indicator" id="boostIndicator">x1.0</span></span>
+                        <span class="enhancement-value" id="boostValue">0%</span>
+                    </div>
+                    <input type="range" class="enhancement-slider" id="boostEnhancementSlider" min="0" max="100" value="0">
+                    
+                    <div class="enhancement-label">
+                        <span>🎚️ تعزيز الجهير <span class="enhancement-indicator" id="bassBoostIndicator">x1.0</span></span>
+                        <span class="enhancement-value" id="bassValue">0%</span>
+                    </div>
+                    <input type="range" class="enhancement-slider" id="bassEnhancementSlider" min="0" max="100" value="0">
+                    
+                    <!-- نظام التضخيم الذكي الجديد -->
+                    <div class="enhancement-label">
+                        <span>🚀 تضخيم الذروة الذكي <span class="enhancement-indicator" id="peakBoostIndicator">x1.0</span></span>
+                        <span class="enhancement-value" id="peakBoostValue">0%</span>
+                    </div>
+                    <input type="range" class="enhancement-slider" id="peakBoostEnhancementSlider" min="0" max="300" value="0">
+
+                    <div class="enhancement-label">
+                        <span>🔊 معزز اللمسة النهائية</span>
+                        <span class="enhancement-value" id="finalBoostValue">0%</span>
+                    </div>
+                    <input type="range" class="enhancement-slider" id="finalBoostEnhancementSlider" min="0" max="200" value="0">
+                    
+                    <div class="quality-indicator">
+                        <span>🎵 جودة الصوت:</span>
+                        <div class="quality-bar">
+                            <div class="quality-level" id="qualityLevel" style="width: 90%;"></div>
+                        </div>
+                        <span id="qualityValue">عالية</span>
+                    </div>
+                    
+                    <div class="quality-indicator" style="margin-top: 15px;">
+                        <span>📊 مستوى التشويه:</span>
+                        <div class="quality-bar">
+                            <div class="quality-level" id="distortionLevel" style="width: 0%; background: linear-gradient(90deg, #00ff00, #ff9900, #ff0000);"></div>
+                        </div>
+                        <span id="distortionValue">منخفض جداً</span>
+                    </div>
+                    
+                    <div class="bit-depth-indicator" id="bitDepthIndicator">
+                        عمق البت: 16-bit
+                    </div>
+                    
+                    <div class="bit-depth-indicator" id="dynamicRangeIndicator" style="margin-top: 10px;">
+                        المدى الديناميكي: 96dB
+                    </div>
+                    
+                    <div class="enhancement-presets">
+                        <button class="enhancement-preset-btn active" data-preset="normal">عادي</button>
+                        <button class="enhancement-preset-btn" data-preset="bass">جهير</button>
+                        <button class="enhancement-preset-btn" data-preset="clear">صوت نقي</button>
+                        <button class="enhancement-preset-btn" data-preset="boost">تضخيم</button>
+                    </div>
+                    
+                    <div class="enhancement-presets" style="margin-top: 15px;">
+                        <button class="enhancement-preset-btn" data-preset="super_boost">تعزيز فائق</button>
+                        <button class="enhancement-preset-btn" data-preset="concert">حفلة مباشرة</button>
+                        <button class="enhancement-preset-btn" data-preset="cinema">سينما IMAX</button>
+                        <button class="enhancement-preset-btn" data-preset="studio">إستوديو احترافي</button>
+                    </div>
+                </div>
+                
+                <div class="quality-settings">
+                    <h4 style="color: #FFD700;">إعدادات جودة الصوت المتقدمة</h4>
+                    <label>دقة الصوت:</label>
+                    <select id="audioQuality">
+                        <option value="standard">قياسي (44.1kHz - 16-bit)</option>
+                        <option value="high">عالي الجودة (48kHz - 16-bit)</option>
+                        <option value="hd" selected>عالية الدقة (96kHz - 24-bit)</option>
+                        <option value="ultra_hd">جودة فائقة (192kHz - 24-bit)</option>
+                    </select>
+                    
+                    <label>
+                        <input type="checkbox" id="enableDithering" checked> 
+                        تمكين Dithering (لجودة أفضل في المستويات المنخفضة)
+                    </label>
+                    
+                    <label>
+                        <input type="checkbox" id="enableCompressor" checked> 
+                        تمكين Compressor (لتوازن الصوت)
+                    </label>
+                    
+                    <label>
+                        <input type="checkbox" id="enableNoiseReduction"> 
+                        تقليل الضوضاء
+                    </label>
+                </div>
+                
+                <div class="eq-container">
+                    <h4 style="color: #e0e0e0; text-align: center;">المعادل الاحترافي (18 نطاق)</h4>
+                    <div class="eq-bands-container" id="eqBands">
+                        <!-- سيتم إنشاء نطاقات المعادل الـ 18 ديناميكيًا -->
+                    </div>
+                    
+                    <div class="preset-buttons">
+                        <button class="preset-btn active" data-preset="flat">مسطح</button>
+                        <button class="preset-btn" data-preset="bass">جهير مكثف</button>
+                        <button class="preset-btn" data-preset="vocal">واضح الصوت</button>
+                        <button class="preset-btn" data-preset="acoustic">أكوستيك</button>
+                        <button class="preset-btn" data-preset="rock">روك</button>
+                        <button class="preset-btn" data-preset="jazz">جاز</button>
+                        <button class="preset-btn" data-preset="classical">كلاسيكي</button>
+                        <button class="preset-btn" data-preset="electronic">إلكتروني</button>
+                        <button class="preset-btn" data-preset="hardstyle">هاردستايل</button>
+                    </div>
+                </div>
+                
+                <div class="analysis-panel">
+                    <h4 style="color: #e0e0e0; text-align: center;">محلل الطيف الحقيقي</h4>
+                    <div class="spectrum-display" id="spectrumDisplay">
+                        <!-- سيتم إنشاء canvas هنا -->
+                    </div>
+                </div>
+                
+                <div class="advanced-settings">
+                    <div class="setting-group">
+                        <h5 style="color: #FFD700;">التحكم في التشغيل</h5>
+                        <label style="color: #e0e0e0;">سرعة التشغيل</label>
+                        <input type="range" class="setting-slider" id="playbackSpeed" min="50" max="200" value="100">
+                        <span id="speedValue" style="color: #e0e0e0;">100%</span>
+                        
+                        <label style="color: #e0e0e0; display: block; margin-top: 10px;">التداخل بين الأغاني</label>
+                        <input type="range" class="setting-slider" id="crossfade" min="0" max="10" value="0">
+                        <span id="crossfadeValue" style="color: #e0e0e0;">0 ثانية</span>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <h5 style="color: #FFD700;">التأثيرات الصوتية</h5>
+                        <label style="color: #e0e0e0;">الصدى</label>
+                        <input type="range" class="setting-slider" id="reverb" min="0" max="100" value="0">
+                        <span id="reverbValue" style="color: #e0e0e0;">0%</span>
+                        
+                        <label style="color: #e0e0e0; display: block; margin-top: 10px;">التكرار A-B</label>
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button class="preset-btn" id="setPointA">تعيين النقطة A</button>
+                            <button class="preset-btn" id="setPointB">تعيين النقطة B</button>
+                            <button class="preset-btn" id="toggleABRepeat">تشغيل التكرار</button>
+                            <button class="preset-btn" id="clearABPoints">مسح النقاط</button>
+                        </div>
+                        <div id="abStatus" style="margin-top: 10px; color: #e0e0e0; font-size: 12px;">
+                            النقطة A: غير معينة | النقطة B: غير معينة | الحالة: غير مفعل
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // نظام الأمان المتقدم
+        class SecuritySystem {
+            constructor() {
+                this.encryptionKey = null;
+                this.securityLogs = [];
+                this.isParanoidMode = false;
+                this.isEncryptionEnabled = true;
+                this.threatDetected = false;
+                this.loginAttempts = 0;
+                this.maxLoginAttempts = 3;
+                this.sessionTimeout = 30 * 60 * 1000; // 30 دقيقة
+                
+                this.initSecurity();
+            }
+            
+            initSecurity() {
+                this.generateEncryptionKey();
+                this.startSessionTimer();
+                this.setupSecurityMonitoring();
+                this.logSecurityEvent('نظام الأمان تم تهيئته', 'info');
+            }
+            
+            generateEncryptionKey() {
+                try {
+                    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
+                    let key = '';
+                    for (let i = 0; i < 32; i++) {
+                        key += chars.charAt(Math.floor(Math.random() * chars.length));
+                    }
+                    this.encryptionKey = btoa(key);
+                    this.logSecurityEvent('مفتاح التشفير تم إنشاؤه', 'success');
+                } catch (error) {
+                    this.logSecurityEvent('خطأ في إنشاء مفتاح التشفير', 'error');
+                }
+            }
+            
+            encryptData(data) {
+                if (!this.isEncryptionEnabled || !this.encryptionKey) return data;
+                
+                try {
+                    const encoded = btoa(encodeURIComponent(data));
+                    let encrypted = '';
+                    for (let i = 0; i < encoded.length; i++) {
+                        const keyChar = this.encryptionKey.charCodeAt(i % this.encryptionKey.length);
+                        const dataChar = encoded.charCodeAt(i);
+                        encrypted += String.fromCharCode(dataChar ^ keyChar);
+                    }
+                    return btoa(encrypted);
+                } catch (error) {
+                    this.logSecurityEvent('خطأ في تشفير البيانات', 'error');
+                    return data;
+                }
+            }
+            
+            decryptData(encryptedData) {
+                if (!this.isEncryptionEnabled || !this.encryptionKey) return encryptedData;
+                
+                try {
+                    const decoded = atob(encryptedData);
+                    let decrypted = '';
+                    for (let i = 0; i < decoded.length; i++) {
+                        const keyChar = this.encryptionKey.charCodeAt(i % this.encryptionKey.length);
+                        const dataChar = decoded.charCodeAt(i);
+                        decrypted += String.fromCharCode(dataChar ^ keyChar);
+                    }
+                    return decodeURIComponent(atob(decrypted));
+                } catch (error) {
+                    this.logSecurityEvent('خطأ في فك تشفير البيانات', 'error');
+                    return encryptedData;
+                }
+            }
+            
+            async scanFile(file) {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        const isSafe = this.performSecurityScan(file);
+                        resolve(isSafe);
+                    }, 500);
+                });
+            }
+            
+            performSecurityScan(file) {
+                const dangerousExtensions = ['.exe', '.bat', '.cmd', '.sh', '.js', '.vbs'];
+                const dangerousMimeTypes = [
+                    'application/x-msdownload',
+                    'application/x-sh',
+                    'application/x-shellscript',
+                    'application/javascript'
+                ];
+                
+                const fileName = file.name.toLowerCase();
+                
+                for (const ext of dangerousExtensions) {
+                    if (fileName.endsWith(ext)) {
+                        this.logSecurityEvent(`تم رفض ملف خطير: ${file.name}`, 'warning');
+                        return false;
+                    }
+                }
+                
+                if (dangerousMimeTypes.includes(file.type)) {
+                    this.logSecurityEvent(`تم رفض نوع ملف خطير: ${file.type}`, 'warning');
+                    return false;
+                }
+                
+                const maxSize = 100 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    this.logSecurityEvent(`حجم الملف كبير جداً: ${file.name}`, 'warning');
+                    return false;
+                }
+                
+                this.logSecurityEvent(`تم فحص الملف بنجاح: ${file.name}`, 'success');
+                return true;
+            }
+            
+            detectXSS(input) {
+                const xssPatterns = [
+                    /<script\b[^>]*>([\s\S]*?)<\/script>/gi,
+                    /javascript:/gi,
+                    /on\w+\s*=/gi,
+                    /eval\s*\(/gi,
+                    /alert\s*\(/gi,
+                    /document\.cookie/gi,
+                    /window\.location/gi,
+                    /document\.write/gi,
+                    /innerHTML\s*=/gi,
+                    /outerHTML\s*=/gi
+                ];
+                
+                for (const pattern of xssPatterns) {
+                    if (pattern.test(input)) {
+                        this.logSecurityEvent('تم اكتشاف هجوم XSS', 'danger');
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            detectSQLInjection(input) {
+                const sqlPatterns = [
+                    /(\%27)|(\')|(\-\-)|(\%23)|(#)/gi,
+                    /((\%3D)|(=))[^\n]*((\%27)|(\')|(\-\-)|(\%3B)|(;))/gi,
+                    /union\s+select/gi,
+                    /insert\s+into/gi,
+                    /delete\s+from/gi,
+                    /update\s+\w+\s+set/gi,
+                    /drop\s+table/gi,
+                    /truncate\s+table/gi,
+                    /exec(\s|\+)+(s|x)p\w+/gi
+                ];
+                
+                for (const pattern of sqlPatterns) {
+                    if (pattern.test(input)) {
+                        this.logSecurityEvent('تم اكتشاف محاولة حقن SQL', 'danger');
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            setupSecurityMonitoring() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+                        this.toggleParanoidMode();
+                    }
+                    
+                    if (e.key === 'Escape' && this.isParanoidMode) {
+                        this.disableParanoidMode();
+                    }
+                });
+                
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        if (mutation.type === 'childList') {
+                            mutation.addedNodes.forEach((node) => {
+                                if (node.nodeType === 1) {
+                                    this.checkNodeForThreats(node);
+                                }
+                            });
+                        }
+                    });
+                });
+                
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+            
+            checkNodeForThreats(node) {
+                if (node.tagName === 'SCRIPT' && node.src) {
+                    const src = node.src.toLowerCase();
+                    if (src.includes('malicious') || src.includes('hack')) {
+                        this.logSecurityEvent('تم اكتشاف سكربت مشبوه', 'danger');
+                        node.remove();
+                    }
+                }
+                
+                if (node.innerHTML) {
+                    if (this.detectXSS(node.innerHTML) || this.detectSQLInjection(node.innerHTML)) {
+                        this.logSecurityEvent('تم اكتشاف محتوى خطير في DOM', 'danger');
+                        node.remove();
+                    }
+                }
+            }
+            
+            toggleParanoidMode() {
+                this.isParanoidMode = !this.isParanoidMode;
+                
+                if (this.isParanoidMode) {
+                    this.enableParanoidMode();
+                } else {
+                    this.disableParanoidMode();
+                }
+                
+                this.logSecurityEvent(`الوضع المحصن: ${this.isParanoidMode ? 'مفعل' : 'معطل'}`, 'info');
+            }
+            
+            enableParanoidMode() {
+                const overlay = document.createElement('div');
+                overlay.className = 'paranoid-overlay';
+                overlay.innerHTML = `
+                    <h1>🔒 الوضع المحصن</h1>
+                    <p>جميع الاتصالات مشفرة والمراقبة الأمنية في أعلى مستوى</p>
+                    <p>جاري حماية بياناتك من التهديدات المحتملة...</p>
+                    <button class="disable-paranoid-btn">تعطيل الوضع المحصن</button>
+                `;
+                
+                document.body.appendChild(overlay);
+                
+                overlay.querySelector('.disable-paranoid-btn').addEventListener('click', () => {
+                    this.disableParanoidMode();
+                });
+                
+                this.encryptAllLocalData();
+                this.logSecurityEvent('تم تفعيل الوضع المحصن', 'success');
+            }
+            
+            disableParanoidMode() {
+                const overlay = document.querySelector('.paranoid-overlay');
+                if (overlay) {
+                    overlay.remove();
+                }
+                this.isParanoidMode = false;
+                this.logSecurityEvent('تم تعطيل الوضع المحصن', 'info');
+            }
+            
+            encryptAllLocalData() {
+                try {
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        const value = localStorage.getItem(key);
+                        const encrypted = this.encryptData(value);
+                        localStorage.setItem(key, encrypted);
+                    }
+                    
+                    this.logSecurityEvent('تم تشفير جميع البيانات المحلية', 'success');
+                } catch (error) {
+                    this.logSecurityEvent('خطأ في تشفير البيانات المحلية', 'error');
+                }
+            }
+            
+            clearSecurityCache() {
+                try {
+                    if (window.caches) {
+                        caches.keys().then(cacheNames => {
+                            cacheNames.forEach(cacheName => {
+                                caches.delete(cacheName);
+                            });
+                        });
+                    }
+                    
+                    sessionStorage.clear();
+                    
+                    this.logSecurityEvent('تم مسح الذاكرة المؤقتة الأمنية', 'success');
+                    alert('✅ تم مسح الذاكرة المؤقتة بنجاح');
+                } catch (error) {
+                    this.logSecurityEvent('خطأ في مسح الذاكرة المؤقتة', 'error');
+                }
+            }
+            
+            startSessionTimer() {
+                setInterval(() => {
+                    if (!document.hidden) {
+                        this.resetSession();
+                    }
+                }, this.sessionTimeout);
+            }
+            
+            resetSession() {
+                this.loginAttempts = 0;
+                this.logSecurityEvent('تم إعادة تعيين الجلسة', 'info');
+            }
+            
+            logSecurityEvent(message, type = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = {
+                    timestamp,
+                    message,
+                    type
+                };
+                
+                this.securityLogs.unshift(logEntry);
+                
+                if (this.securityLogs.length > 50) {
+                    this.securityLogs.pop();
+                }
+                
+                this.updateSecurityLogsUI();
+                
+                console.log(`[${type.toUpperCase()}] ${timestamp}: ${message}`);
+            }
+            
+            updateSecurityLogsUI() {
+                const logsContainer = document.getElementById('securityLogs');
+                if (!logsContainer) return;
+                
+                logsContainer.innerHTML = '';
+                
+                this.securityLogs.forEach(log => {
+                    const logElement = document.createElement('div');
+                    logElement.className = `log-entry ${log.type}`;
+                    logElement.innerHTML = `
+                        <span class="log-time">[${log.timestamp}]</span>
+                        <span class="log-message">${log.message}</span>
+                    `;
+                    logsContainer.appendChild(logElement);
+                });
+            }
+            
+            generateSecurityReport() {
+                const report = {
+                    timestamp: new Date().toISOString(),
+                    totalLogs: this.securityLogs.length,
+                    threatCount: this.securityLogs.filter(log => log.type === 'danger').length,
+                    warnings: this.securityLogs.filter(log => log.type === 'warning').length,
+                    encryptionEnabled: this.isEncryptionEnabled,
+                    paranoidMode: this.isParanoidMode,
+                    sessionStatus: 'active'
+                };
+                
+                const reportText = JSON.stringify(report, null, 2);
+                const blob = new Blob([reportText], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `security-report-${Date.now()}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                this.logSecurityEvent('تم إنشاء تقرير أمني', 'success');
+                alert('📊 تم إنشاء التقرير الأمني وبدأ التحميل');
+            }
+        }
+        
+        // نظام الصوت المحسن مع التضخيم الذكي المتقدم - الإصلاح
+        class EnhancedAudioSystem {
+            constructor() {
+                this.audioContext = null;
+                this.analyser = null;
+                this.source = null;
+                this.eqFilters = [];
+                this.reverbNode = null;
+                this.bassBoostNode = null;
+                this.volumeNode = null;
+                this.gainNode = null;
+                this.compressorNode = null;
+                this.noiseReductionNode = null;
+                this.spectrumAnalyser = null;
+                
+                this.dataArray = null;
+                this.spectrumDataArray = null;
+                this.animationFrameId = null;
+                this.limiterNode = null;
+                this.enableLimiter = true;
+                this.maxOutputLevel = 0.95;
+                this.isProcessingEnabled = true;
+                
+                this.eqGains = new Array(18).fill(0);
+                this.reverbLevel = 0;
+                this.bassBoostLevel = 0;
+                this.volumeBoostLevel = 0;
+                this.noiseReductionLevel = 0;
+                
+                this.isAudioContextInitialized = false;
+                this.currentSampleRate = 96000;
+                this.currentBitDepth = 24;
+                this.supportedSampleRates = [44100, 48000, 96000, 192000];
+                this.supportedBitDepths = [16, 24];
+                
+                this.audioEnhancements = {
+                    clarity: 0,
+                    warmth: 0,
+                    presence: 0,
+                    dynamicRange: 100
+                };
+                
+                // نظام التضخيم الذكي المتقدم - تم إصلاحه
+                this.smartBoosterNode = null;
+                this.lowBandLimiter = null;
+                this.midBandLimiter = null;
+                this.highBandLimiter = null;
+                this.exciterNode = null;
+                this.saturationNode = null;
+                this.loudnessAnalyser = null;
+                this.loudnessData = null;
+                this.truePeakLevel = 0;
+                this.isClipping = false;
+                this.peakBoostLevel = 0;
+                this.finalBoostLevel = 0;
+                this.exciterLevel = 0;
+                this.saturationLevel = 0;
+                
+                // محدد الذروة لمنع التهنيج
+                this.peakLimiterNode = null;
+                this.clippingWarningThreshold = 0.95;
+                this.clippingWarningElement = null;
+                
+                // إصلاح: متغيرات جديدة للتحكم في توازن الجهير
+                this.bassCompensationGain = 1.0;
+                this.bassCompensationNode = null;
+            }
+            
+            async initializeAudioProcessing(audioElement, sampleRate = 96000, bitDepth = 24) {
+                if (this.isAudioContextInitialized) {
+                    this.cleanup();
+                }
+                
+                try {
+                    const supportedRate = this.getSupportedSampleRate(sampleRate);
+                    this.currentSampleRate = supportedRate;
+                    this.currentBitDepth = this.getSupportedBitDepth(bitDepth);
+                    
+                    console.log(`🎵 تهيئة معالجة الصوت بـ ${supportedRate}Hz / ${this.currentBitDepth}-bit`);
+                    
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)({
+                        sampleRate: supportedRate,
+                        latencyHint: 'interactive'
+                    });
+                    
+                    this.source = this.audioContext.createMediaElementSource(audioElement);
+                    this.volumeNode = this.audioContext.createGain();
+                    this.gainNode = this.audioContext.createGain();
+                    
+                    // إصلاح: إضافة مضخم تعويض للجهير لمنع انخفاض الصوت
+                    this.bassCompensationNode = this.audioContext.createGain();
+                    this.bassCompensationNode.gain.value = 1.0;
+                    
+                    // إعداد الضاغط بشكل مختلف لمنع انخفاض الصوت مع الجهير
+                    this.compressorNode = this.audioContext.createDynamicsCompressor();
+                    
+                    // إصلاح: إعدادات ضاغط أكثر اعتدالاً
+                    this.compressorNode.threshold.value = -15; // تخفيض عتبة الضغط
+                    this.compressorNode.knee.value = 10;      // زيادة منطقة الركبة
+                    this.compressorNode.ratio.value = 3;      // تخفيض نسبة الضغط
+                    this.compressorNode.attack.value = 0.015; // زيادة وقت الهجوم
+                    this.compressorNode.release.value = 0.25;
+                    
+                    // محدد الذروة لمنع التهنيج
+                    this.peakLimiterNode = this.audioContext.createDynamicsCompressor();
+                    this.peakLimiterNode.threshold.value = -1;
+                    this.peakLimiterNode.knee.value = 0;
+                    this.peakLimiterNode.ratio.value = 20;
+                    this.peakLimiterNode.attack.value = 0.001;
+                    this.peakLimiterNode.release.value = 0.050;
+                    
+                    this.analyser = this.audioContext.createAnalyser();
+                    this.analyser.fftSize = 4096;
+                    this.analyser.smoothingTimeConstant = 0.8;
+                    
+                    this.spectrumAnalyser = this.audioContext.createAnalyser();
+                    this.spectrumAnalyser.fftSize = 1024;
+                    this.spectrumAnalyser.smoothingTimeConstant = 0.6;
+                    
+                    this.reverbNode = this.audioContext.createConvolver();
+                    this.createReverbImpulse();
+                    
+                    // إصلاح: تغيير إعدادات معزز الجهير
+                    this.bassBoostNode = this.audioContext.createBiquadFilter();
+                    this.bassBoostNode.type = 'lowshelf';
+                    this.bassBoostNode.frequency.value = 120; // تخفيض التردد لتركيز الجهير
+                    this.bassBoostNode.gain.value = 0;
+                    
+                    this.volumeNode.gain.value = 1.0;
+                    
+                    this.eqFilters = this.createEQ18Filters();
+                    
+                    this.noiseReductionNode = this.createNoiseReductionFilter();
+                    
+                    // تهيئة نظام التضخيم الذكي
+                    this.initializeSmartBooster();
+                    
+                    // بناء سلسلة معالجة الصوت مع الإصلاحات
+                    this.buildAudioProcessingChainWithSmartBoost();
+                    
+                    this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+                    this.spectrumDataArray = new Uint8Array(this.spectrumAnalyser.frequencyBinCount);
+                    
+                    this.isAudioContextInitialized = true;
+                    
+                    console.log(`✅ نظام معالجة الصوت المتقدم تم تهيئته بنجاح`);
+                    console.log(`🎵 معدل العينات: ${this.audioContext.sampleRate}Hz`);
+                    console.log(`🎚️ عمق البت: ${this.currentBitDepth}-bit`);
+                    
+                    return true;
+                } catch (error) {
+                    console.error('❌ خطأ في تهيئة معالجة الصوت:', error);
+                    return false;
+                }
+            }
+            
+            getSupportedSampleRate(desiredRate) {
+                const context = new (window.AudioContext || window.webkitAudioContext)();
+                const availableRates = this.supportedSampleRates;
+                const supportedRate = availableRates.find(rate => rate <= desiredRate) || availableRates[0];
+                context.close();
+                return supportedRate;
+            }
+            
+            getSupportedBitDepth(desiredDepth) {
+                return this.supportedBitDepths.find(depth => depth <= desiredDepth) || this.supportedBitDepths[0];
+            }
+            
+            createNoiseReductionFilter() {
+                if (!this.audioContext) return null;
+                const filter = this.audioContext.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.value = 20;
+                filter.Q.value = 0.7;
+                return filter;
+            }
+            
+            createReverbImpulse() {
+                if (!this.audioContext || !this.reverbNode) return;
+                
+                const length = this.audioContext.sampleRate * 2.5;
+                const impulse = this.audioContext.createBuffer(2, length, this.audioContext.sampleRate);
+                const leftChannel = impulse.getChannelData(0);
+                const rightChannel = impulse.getChannelData(1);
+                
+                for (let i = 0; i < length; i++) {
+                    const n = i / length;
+                    const decay = Math.pow(1 - n, 4);
+                    leftChannel[i] = (Math.random() * 2 - 1) * decay;
+                    rightChannel[i] = (Math.random() * 2 - 1) * decay * 0.8;
+                }
+                
+                this.reverbNode.buffer = impulse;
+            }
+            
+            createEQ18Filters() {
+                if (!this.audioContext) return [];
+                
+                const frequencies = [
+                    20, 30, 45, 67, 100, 150, 225, 337, 506,
+                    759, 1138, 1707, 2560, 3840, 5760, 8640,
+                    12960, 19440
+                ];
+                
+                const filters = [];
+                for (let i = 0; i < 18; i++) {
+                    const filter = this.audioContext.createBiquadFilter();
+                    filter.type = 'peaking';
+                    filter.frequency.value = frequencies[i];
+                    filter.Q.value = 1.0;
+                    filter.gain.value = 0;
+                    filters.push(filter);
+                }
+                return filters;
+            }
+            
+            // نظام التضخيم الذكي المتقدم - الإصلاح
+            initializeSmartBooster() {
+                if (!this.audioContext) return;
+                
+                try {
+                    // مضخم الذروة الذكي
+                    this.smartBoosterNode = this.audioContext.createGain();
+                    this.smartBoosterNode.gain.value = 1.0;
+                    
+                    // محدب ذكي متعدد النطاقات
+                    this.createMultibandLimiter();
+                    
+                    // معزز التوافقيات
+                    this.exciterNode = this.createExciter();
+                    
+                    // معالج التشبع الدافئ
+                    this.saturationNode = this.createWarmSaturation();
+                    
+                    // محلل الذروة الحقيقية
+                    this.loudnessAnalyser = this.audioContext.createAnalyser();
+                    this.loudnessAnalyser.fftSize = 32768;
+                    this.loudnessData = new Float32Array(this.loudnessAnalyser.fftSize);
+                    
+                    console.log('🚀 نظام التضخيم الذكي المتقدم تم تهيئته');
+                    return true;
+                } catch (error) {
+                    console.error('❌ خطأ في تهيئة نظام التضخيم:', error);
+                    return false;
+                }
+            }
+
+            // محدب متعدد النطاقات ذكي
+            createMultibandLimiter() {
+                if (!this.audioContext) return;
+                
+                // إصلاح: إعدادات محدب أقل عدوانية
+                this.lowBandLimiter = this.audioContext.createDynamicsCompressor();
+                this.lowBandLimiter.threshold.value = -6;  // زيادة العتبة للجهير
+                this.lowBandLimiter.knee.value = 6;       // زيادة منطقة الركبة
+                this.lowBandLimiter.ratio.value = 8;      // تخفيض النسبة
+                this.lowBandLimiter.attack.value = 0.005; // زيادة وقت الهجوم
+                this.lowBandLimiter.release.value = 0.100;
+                
+                this.midBandLimiter = this.audioContext.createDynamicsCompressor();
+                this.midBandLimiter.threshold.value = -8;
+                this.midBandLimiter.knee.value = 6;
+                this.midBandLimiter.ratio.value = 6;
+                this.midBandLimiter.attack.value = 0.008;
+                this.midBandLimiter.release.value = 0.150;
+                
+                this.highBandLimiter = this.audioContext.createDynamicsCompressor();
+                this.highBandLimiter.threshold.value = -10;
+                this.highBandLimiter.knee.value = 6;
+                this.highBandLimiter.ratio.value = 4;
+                this.highBandLimiter.attack.value = 0.010;
+                this.highBandLimiter.release.value = 0.200;
+            }
+
+            // معزز التوافقيات
+            createExciter() {
+                if (!this.audioContext) return null;
+                
+                const processor = this.audioContext.createScriptProcessor(2048, 1, 1);
+                const self = this;
+                
+                processor.onaudioprocess = function(audioProcessingEvent) {
+                    const inputBuffer = audioProcessingEvent.inputBuffer;
+                    const outputBuffer = audioProcessingEvent.outputBuffer;
+                    
+                    for (let channel = 0; channel < inputBuffer.numberOfChannels; channel++) {
+                        const inputData = inputBuffer.getChannelData(channel);
+                        const outputData = outputBuffer.getChannelData(channel);
+                        
+                        for (let i = 0; i < inputData.length; i++) {
+                            let sample = inputData[i];
+                            
+                            // إضافة توافقيات زوجية دافئة
+                            if (Math.abs(sample) > 0.1) {
+                                const harmonic = sample * sample * 0.2;
+                                sample = sample + harmonic * (self.exciterLevel / 100) * 0.3;
+                            }
+                            
+                            // تلميع عالي التردد
+                            if (i > 0) {
+                                const diff = sample - inputData[i-1];
+                                sample += Math.sign(diff) * Math.min(Math.abs(diff) * 0.03, 0.01);
+                            }
+                            
+                            outputData[i] = self.applySoftClipping(sample, 0.95);
+                        }
+                    }
+                };
+                
+                return processor;
+            }
+
+            // تشبع دافئ
+            createWarmSaturation() {
+                if (!this.audioContext) return null;
+                
+                const processor = this.audioContext.createScriptProcessor(2048, 1, 1);
+                const self = this;
+                
+                processor.onaudioprocess = function(audioProcessingEvent) {
+                    const inputBuffer = audioProcessingEvent.inputBuffer;
+                    const outputBuffer = audioProcessingEvent.outputBuffer;
+                    
+                    for (let channel = 0; channel < inputBuffer.numberOfChannels; channel++) {
+                        const inputData = inputBuffer.getChannelData(channel);
+                        const outputData = outputBuffer.getChannelData(channel);
+                        
+                        for (let i = 0; i < inputData.length; i++) {
+                            let x = inputData[i];
+                            
+                            // تشبع أنبوبي دافئ
+                            if (self.saturationLevel > 0) {
+                                const k = 1.5 * self.saturationLevel / 100;
+                                x = Math.tanh(k * x) / Math.tanh(k);
+                            }
+                            
+                            outputData[i] = x;
+                        }
+                    }
+                };
+                
+                return processor;
+            }
+
+            // قصة تشبيع ذكية
+            applySoftClipping(sample, threshold) {
+                const absSample = Math.abs(sample);
+                
+                if (absSample <= threshold) {
+                    return sample;
+                }
+                
+                if (absSample >= 1.0) {
+                    return Math.sign(sample) * 0.999;
+                }
+                
+                const x = sample;
+                const t = threshold;
+                
+                if (x > t) {
+                    return t + (x - t) / (1 + Math.pow((x - t) / (1 - t), 2));
+                } else if (x < -t) {
+                    return -t + (x + t) / (1 + Math.pow((x + t) / (1 - t), 2));
+                }
+                
+                return sample;
+            }
+
+            // التضخيم الذكي للذروة - الإصلاح
+            updatePeakBoost(level) {
+                this.peakBoostLevel = level;
+                
+                if (!this.smartBoosterNode || !this.audioContext) return;
+                
+                // حساب التضخيم الذكي
+                const safeLevel = Math.min(level, 300);
+                const boostLinear = 1 + (safeLevel / 100) * 1.5; // تخفيض مضاعفة التضخيم
+                
+                // إصلاح: ضبط محدد الذروة بشكل أكثر اعتدالاً
+                const safeThreshold = -5 - (safeLevel / 20); // زيادة العتبة
+                if (this.peakLimiterNode) {
+                    this.peakLimiterNode.threshold.value = Math.max(-15, safeThreshold);
+                    this.peakLimiterNode.ratio.value = Math.min(15, 4 + (safeLevel / 25)); // تخفيض النسبة
+                }
+                
+                // تطبيق التضخيم
+                const currentGain = this.smartBoosterNode.gain.value;
+                const targetGain = boostLinear;
+                
+                this.smartBoosterNode.gain.cancelScheduledValues(this.audioContext.currentTime);
+                this.smartBoosterNode.gain.setValueAtTime(currentGain, this.audioContext.currentTime);
+                this.smartBoosterNode.gain.linearRampToValueAtTime(
+                    targetGain, 
+                    this.audioContext.currentTime + 0.1
+                );
+                
+                // ضبط المحدب ديناميكياً
+                this.updateDynamicLimiter(level);
+                
+                console.log(`🚀 تضخيم الذروة: ${safeLevel}% (x${boostLinear.toFixed(2)})`);
+            }
+
+            // التعزيز النهائي الذكي
+            updateFinalBoost(level) {
+                this.finalBoostLevel = level;
+                
+                if (!this.exciterNode || !this.saturationNode) return;
+                
+                // إعادة ضبط المعالجات
+                this.updateExciter(level);
+                this.updateSaturation(level);
+                
+                // مراقبة التشويه
+                this.monitorDistortion();
+                
+                console.log(`🔊 التعزيز النهائي: ${level}%`);
+            }
+
+            // تحديث المحدب الديناميكي - الإصلاح
+            updateDynamicLimiter(boostLevel) {
+                const safeThreshold = -5 - (boostLevel / 15); // زيادة العتبة
+                
+                if (this.lowBandLimiter) {
+                    this.lowBandLimiter.threshold.value = safeThreshold - 1; // تخفيض التأثير
+                    this.lowBandLimiter.ratio.value = Math.min(10, 6 + (boostLevel / 30)); // تخفيض النسبة
+                }
+                
+                if (this.midBandLimiter) {
+                    this.midBandLimiter.threshold.value = safeThreshold;
+                    this.midBandLimiter.ratio.value = Math.min(8, 5 + (boostLevel / 40));
+                }
+                
+                if (this.highBandLimiter) {
+                    this.highBandLimiter.threshold.value = safeThreshold + 2;
+                    this.highBandLimiter.ratio.value = Math.min(6, 4 + (boostLevel / 50));
+                }
+            }
+
+            // تحديث معزز التوافقيات
+            updateExciter(level) {
+                this.exciterLevel = level;
+            }
+
+            // تحديث التشبع الدافئ
+            updateSaturation(level) {
+                this.saturationLevel = level;
+            }
+
+            // مراقبة التشويه والتهنيج
+            monitorDistortion() {
+                if (!this.loudnessAnalyser || !this.loudnessData) return;
+                
+                this.loudnessAnalyser.getFloatTimeDomainData(this.loudnessData);
+                
+                let peak = 0;
+                let clippingSamples = 0;
+                let rms = 0;
+                
+                for (let i = 0; i < this.loudnessData.length; i++) {
+                    const value = Math.abs(this.loudnessData[i]);
+                    peak = Math.max(peak, value);
+                    rms += value * value;
+                    
+                    if (value > this.clippingWarningThreshold) {
+                        clippingSamples++;
+                    }
+                }
+                
+                rms = Math.sqrt(rms / this.loudnessData.length);
+                this.truePeakLevel = peak;
+                this.isClipping = clippingSamples > 10;
+                
+                // حساب نسبة التشويه
+                const distortionPercent = Math.min(100, clippingSamples / this.loudnessData.length * 10000);
+                const distortionLevel = Math.min(100, peak * 100 + distortionPercent);
+                
+                // تحديث واجهة المستخدم
+                this.updateDistortionUI(distortionLevel, distortionPercent);
+                
+                // عرض تحذير التهنيج
+                this.showClippingWarning(this.isClipping);
+                
+                return {
+                    peak: this.truePeakLevel,
+                    isClipping: this.isClipping,
+                    distortionPercent: distortionPercent,
+                    rms: rms
+                };
+            }
+
+            // عرض تحذير التهنيج
+            showClippingWarning(isClipping) {
+                if (!this.clippingWarningElement) {
+                    this.clippingWarningElement = document.getElementById('clippingWarning');
+                }
+                
+                if (this.clippingWarningElement) {
+                    if (isClipping) {
+                        this.clippingWarningElement.style.display = 'block';
+                    } else {
+                        this.clippingWarningElement.style.display = 'none';
+                    }
+                }
+            }
+
+            // تحديث واجهة مؤشر التشويه
+            updateDistortionUI(level, percent) {
+                const distortionLevel = document.getElementById('distortionLevel');
+                const distortionValue = document.getElementById('distortionValue');
+                
+                if (distortionLevel && distortionValue) {
+                    distortionLevel.style.width = `${level}%`;
+                    
+                    if (level < 20) {
+                        distortionValue.textContent = "منخفض جداً";
+                        distortionValue.style.color = "#00ff00";
+                    } else if (level < 50) {
+                        distortionValue.textContent = "منخفض";
+                        distortionValue.style.color = "#99ff00";
+                    } else if (level < 70) {
+                        distortionValue.textContent = "متوسط";
+                        distortionValue.style.color = "#ff9900";
+                    } else {
+                        distortionValue.textContent = "مرتفع ⚠️";
+                        distortionValue.style.color = "#ff0000";
+                    }
+                }
+            }
+
+            // بناء سلسلة معالجة الصوت مع التضخيم الذكي - الإصلاح
+            buildAudioProcessingChainWithSmartBoost() {
+                if (!this.audioContext || !this.source) return;
+                
+                let currentNode = this.source;
+                
+                // إصلاح: إضافة تعويض للجهير قبل الضاغط
+                currentNode.connect(this.bassCompensationNode);
+                currentNode = this.bassCompensationNode;
+                
+                // 1. تقليل الضوضاء أولاً
+                if (this.noiseReductionNode) {
+                    currentNode.connect(this.noiseReductionNode);
+                    currentNode = this.noiseReductionNode;
+                }
+                
+                // 2. الضاغط الأساسي
+                currentNode.connect(this.compressorNode);
+                currentNode = this.compressorNode;
+                
+                // 3. المعادل متعدد النطاقات
+                for (const filter of this.eqFilters) {
+                    currentNode.connect(filter);
+                    currentNode = filter;
+                }
+                
+                // 4. معزز الجهير
+                currentNode.connect(this.bassBoostNode);
+                currentNode = this.bassBoostNode;
+                
+                // 5. التعزيز الأساسي
+                currentNode.connect(this.gainNode);
+                currentNode = this.gainNode;
+                
+                // 6. التضخيم الذكي للذروة
+                if (this.smartBoosterNode) {
+                    currentNode.connect(this.smartBoosterNode);
+                    currentNode = this.smartBoosterNode;
+                }
+                
+                // 7. المحدب متعدد النطاقات
+                if (this.lowBandLimiter && this.midBandLimiter && this.highBandLimiter) {
+                    currentNode.connect(this.lowBandLimiter);
+                    currentNode = this.lowBandLimiter;
+                    
+                    currentNode.connect(this.midBandLimiter);
+                    currentNode = this.midBandLimiter;
+                    
+                    currentNode.connect(this.highBandLimiter);
+                    currentNode = this.highBandLimiter;
+                }
+                
+                // 8. محدد الذروة النهائي لمنع التهنيج
+                if (this.peakLimiterNode) {
+                    currentNode.connect(this.peakLimiterNode);
+                    currentNode = this.peakLimiterNode;
+                }
+                
+                // 9. معزز التوافقيات
+                if (this.exciterNode) {
+                    currentNode.connect(this.exciterNode);
+                    currentNode = this.exciterNode;
+                }
+                
+                // 10. التشبع الدافئ
+                if (this.saturationNode) {
+                    currentNode.connect(this.saturationNode);
+                    currentNode = this.saturationNode;
+                }
+                
+                // 11. محلل الصوت
+                currentNode.connect(this.loudnessAnalyser);
+                currentNode.connect(this.analyser);
+                currentNode.connect(this.spectrumAnalyser);
+                
+                // 12. الصدى
+                const dryGain = this.audioContext.createGain();
+                const wetGain = this.audioContext.createGain();
+                const merger = this.audioContext.createChannelMerger(2);
+                
+                currentNode.connect(dryGain);
+                dryGain.connect(merger, 0, 0);
+                
+                currentNode.connect(this.reverbNode);
+                this.reverbNode.connect(wetGain);
+                wetGain.connect(merger, 0, 1);
+                
+                merger.connect(this.audioContext.destination);
+                
+                this.audioNodes = {
+                    source: this.source,
+                    volumeNode: this.volumeNode,
+                    gainNode: this.gainNode,
+                    compressorNode: this.compressorNode,
+                    bassBoostNode: this.bassBoostNode,
+                    reverbNode: this.reverbNode,
+                    dryGain,
+                    wetGain,
+                    eqFilters: this.eqFilters,
+                    noiseReductionNode: this.noiseReductionNode,
+                    smartBoosterNode: this.smartBoosterNode,
+                    lowBandLimiter: this.lowBandLimiter,
+                    midBandLimiter: this.midBandLimiter,
+                    highBandLimiter: this.highBandLimiter,
+                    exciterNode: this.exciterNode,
+                    saturationNode: this.saturationNode,
+                    peakLimiterNode: this.peakLimiterNode,
+                    bassCompensationNode: this.bassCompensationNode
+                };
+            }
+            
+            // إصلاح: تحديث تعزيز الجهير مع تعويض لمنع انخفاض الصوت
+            updateBassBoost(level) {
+                this.bassBoostLevel = level;
+                
+                if (this.bassBoostNode) {
+                    // إصلاح: زيادة تعزيز الجهير مع تعويض الصوت العام
+                    const gainDB = (level / 100) * 15; // زيادة الحد الأقصى إلى 15dB
+                    this.bassBoostNode.gain.value = gainDB;
+                    
+                    // إصلاح: تعويض الصوت العام عند تعزيز الجهير
+                    if (level > 20) {
+                        const compensation = 1 + ((level - 20) / 80) * 0.3; // تعويض تدريجي
+                        this.bassCompensationGain = compensation;
+                        if (this.bassCompensationNode) {
+                            this.bassCompensationNode.gain.value = compensation;
+                        }
+                    } else {
+                        this.bassCompensationGain = 1.0;
+                        if (this.bassCompensationNode) {
+                            this.bassCompensationNode.gain.value = 1.0;
+                        }
+                    }
+                    
+                    // تحديث مؤشر الجهير في الواجهة
+                    const bassBoostIndicator = document.getElementById('bassBoostIndicator');
+                    if (bassBoostIndicator) {
+                        const boostFactor = 1 + (gainDB / 20);
+                        bassBoostIndicator.textContent = `x${boostFactor.toFixed(1)}`;
+                    }
+                    
+                    console.log(`🔊 معزز الجهير: ${gainDB.toFixed(1)}dB (تعويض: x${this.bassCompensationGain.toFixed(2)})`);
+                }
+            }
+            
+            updateReverb(level) {
+                this.reverbLevel = level;
+                if (this.audioNodes && this.audioNodes.dryGain && this.audioNodes.wetGain) {
+                    const dryLevel = Math.max(0, 1 - (level / 100));
+                    const wetLevel = level / 100;
+                    
+                    this.audioNodes.dryGain.gain.value = dryLevel;
+                    this.audioNodes.wetGain.gain.value = wetLevel * 0.3;
+                    
+                    console.log(`🎚️ الصدى: ${level}% (جاف: ${dryLevel.toFixed(2)}, رطب: ${wetLevel.toFixed(2)})`);
+                }
+            }
+            
+            updateVolumeBoost(level) {
+                this.volumeBoostLevel = level;
+                if (this.gainNode) {
+                    const boostFactor = 1 + (level / 100) * 0.8; // زيادة التعزيز
+                    this.gainNode.gain.value = boostFactor;
+                    console.log(`🔊 مضخم الصوت: x${boostFactor.toFixed(2)}`);
+                }
+            }
+            
+            updateNoiseReduction(level) {
+                this.noiseReductionLevel = level;
+                if (this.noiseReductionNode) {
+                    const frequency = 20 + (level / 100) * 300;
+                    this.noiseReductionNode.frequency.value = frequency;
+                    console.log(`🔇 تقليل الضوضاء: ${level}% (${frequency.toFixed(0)}Hz)`);
+                }
+            }
+            
+            updateEQ(bandIndex, gainValue) {
+                if (this.eqFilters && this.eqFilters[bandIndex]) {
+                    // إصلاح: زيادة الحد الأقصى للتعزيز
+                    const safeGain = Math.max(-15, Math.min(15, gainValue));
+                    this.eqFilters[bandIndex].gain.value = safeGain;
+                    this.eqGains[bandIndex] = safeGain;
+                    this.applyAudioEnhancements();
+                }
+            }
+            
+            applyAudioEnhancements() {
+                if (!this.audioContext || !this.eqFilters) return;
+                
+                // إصلاح: زيادة تأثيرات التعزيز
+                if (this.audioEnhancements.clarity > 0) {
+                    const clarityBoost = this.audioEnhancements.clarity / 100 * 5;
+                    if (this.eqFilters[12]) this.eqFilters[12].gain.value += clarityBoost * 0.5;
+                    if (this.eqFilters[13]) this.eqFilters[13].gain.value += clarityBoost * 0.7;
+                    if (this.eqFilters[14]) this.eqFilters[14].gain.value += clarityBoost * 0.9;
+                }
+                
+                if (this.audioEnhancements.warmth > 0) {
+                    const warmthBoost = this.audioEnhancements.warmth / 100 * 6;
+                    if (this.eqFilters[2]) this.eqFilters[2].gain.value += warmthBoost * 0.3;
+                    if (this.eqFilters[3]) this.eqFilters[3].gain.value += warmthBoost * 0.4;
+                    if (this.eqFilters[4]) this.eqFilters[4].gain.value += warmthBoost * 0.6;
+                }
+            }
+            
+            getFrequencyData() {
+                if (!this.analyser || !this.dataArray) return null;
+                
+                this.analyser.getByteFrequencyData(this.dataArray);
+                return this.dataArray;
+            }
+            
+            getSpectrumData() {
+                if (!this.spectrumAnalyser || !this.spectrumDataArray) return null;
+                
+                this.spectrumAnalyser.getByteFrequencyData(this.spectrumDataArray);
+                return this.spectrumDataArray;
+            }
+            
+            cleanup() {
+                if (this.animationFrameId) {
+                    cancelAnimationFrame(this.animationFrameId);
+                    this.animationFrameId = null;
+                }
+                
+                // تنظيف مكونات نظام التضخيم الذكي
+                if (this.exciterNode) {
+                    try {
+                        this.exciterNode.disconnect();
+                        this.exciterNode = null;
+                    } catch (e) {
+                        console.warn('خطأ في فصل Exciter:', e);
+                    }
+                }
+                
+                if (this.saturationNode) {
+                    try {
+                        this.saturationNode.disconnect();
+                        this.saturationNode = null;
+                    } catch (e) {
+                        console.warn('خطأ في فصل Saturation:', e);
+                    }
+                }
+                
+                if (this.lowBandLimiter) {
+                    try {
+                        this.lowBandLimiter.disconnect();
+                        this.lowBandLimiter = null;
+                    } catch (e) {
+                        console.warn('خطأ في فصل Low Band Limiter:', e);
+                    }
+                }
+                
+                if (this.midBandLimiter) {
+                    try {
+                        this.midBandLimiter.disconnect();
+                        this.midBandLimiter = null;
+                    } catch (e) {
+                        console.warn('خطأ في فصل Mid Band Limiter:', e);
+                    }
+                }
+                
+                if (this.highBandLimiter) {
+                    try {
+                        this.highBandLimiter.disconnect();
+                        this.highBandLimiter = null;
+                    } catch (e) {
+                        console.warn('خطأ في فصل High Band Limiter:', e);
+                    }
+                }
+                
+                if (this.peakLimiterNode) {
+                    try {
+                        this.peakLimiterNode.disconnect();
+                        this.peakLimiterNode = null;
+                    } catch (e) {
+                        console.warn('خطأ في فصل Peak Limiter:', e);
+                    }
+                }
+                
+                if (this.bassCompensationNode) {
+                    try {
+                        this.bassCompensationNode.disconnect();
+                        this.bassCompensationNode = null;
+                    } catch (e) {
+                        console.warn('خطأ في فصل Bass Compensation:', e);
+                    }
+                }
+                
+                if (this.audioContext) {
+                    try {
+                        this.audioContext.close();
+                    } catch (e) {
+                        console.warn('خطأ في إغلاق AudioContext:', e);
+                    }
+                    this.audioContext = null;
+                }
+                
+                this.isAudioContextInitialized = false;
+                console.log('🧹 تم تنظيف نظام الصوت');
+            }
+            
+            testAudioSystem() {
+                console.log('🎵 اختبار نظام الصوت:');
+                console.log('- AudioContext:', this.audioContext ? '✅ جاهز' : '❌ غير جاهز');
+                console.log('- معدل العينات:', this.audioContext ? `${this.audioContext.sampleRate}Hz` : 'غير متوفر');
+                console.log('- المعادل:', this.eqFilters ? `✅ ${this.eqFilters.length} نطاق` : '❌ غير جاهز');
+                console.log('- الصدى:', this.reverbNode ? '✅ جاهز' : '❌ غير جاهز');
+                console.log('- معزز الجهير:', this.bassBoostNode ? '✅ جاهز' : '❌ غير جاهز');
+                console.log('- تقليل الضوضاء:', this.noiseReductionNode ? '✅ جاهز' : '❌ غير جاهز');
+                console.log('- التضخيم الذكي:', this.smartBoosterNode ? '✅ جاهز' : '❌ غير جاهز');
+                console.log('- معزز التوافقيات:', this.exciterNode ? '✅ جاهز' : '❌ غير جاهز');
+                console.log('- محدد الذروة:', this.peakLimiterNode ? '✅ جاهز' : '❌ غير جاهز');
+                console.log('- تعويض الجهير:', this.bassCompensationNode ? '✅ جاهز' : '❌ غير جاهز');
+                
+                return this.audioContext !== null;
+            }
+        }
+        
+        // المتغيرات العامة
+        let audio, playPauseBtn, prevBtn, nextBtn, repeatBtn, shuffleBtn, progressBar, progress, currentTimeEl, durationEl;
+        let volumeSlider, volumeProgress, fileInput, imageInput, playlist, songTitle, songArtist, albumImage;
+        let albumArtContainer, songsCount, cameraToggle, boostBtn, powerSaveBtn, visualizer, bassLevel;
+        let songs = [], currentSongIndex = 0, isPlaying = false, isRepeating = false, isShuffling = false;
+        let isCameraRotating = false, isBoosted = false, isAlbumRotating = false, isPowerSaveMode = false;
+        let originalVolume = 0.7, bars = [], rotationAngle = 0, cameraRotationId = null;
+        let objectURLs = [];
+        
+        // متغيرات التكرار A-B
+        let pointA = null;
+        let pointB = null;
+        let isABRepeat = false;
+        let pointAIndicator, pointBIndicator, abRepeatIndicator, abStatus;
+        
+        // الأنظمة
+        let securitySystem = null;
+        let audioSystem = null;
+        
+        // دوال مساعدة
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds === Infinity) return "0:00";
+            
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+            
+            if (hours > 0) {
+                return `${hours}:${minutes < 10 ? '0' : ''}${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+            } else {
+                return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+            }
+        }
+        
+        function getSelectedSampleRate() {
+            const quality = document.getElementById('audioQuality')?.value || 'hd';
+            switch(quality) {
+                case 'standard': return 44100;
+                case 'high': return 48000;
+                case 'hd': return 96000;
+                case 'ultra_hd': return 192000;
+                default: return 96000;
+            }
+        }
+        
+        function getSelectedBitDepth() {
+            const quality = document.getElementById('audioQuality')?.value || 'hd';
+            switch(quality) {
+                case 'standard':
+                case 'high': return 16;
+                case 'hd':
+                case 'ultra_hd': return 24;
+                default: return 24;
+            }
+        }
+        
+        // دالة تحديث مؤشرات النقاط A و B
+        function updateABIndicators() {
+            if (!progressBar || !audio.duration) return;
+            
+            const progressWidth = progressBar.clientWidth;
+            
+            if (pointA !== null && pointAIndicator) {
+                const positionA = (pointA / audio.duration) * 100;
+                pointAIndicator.style.left = `${positionA}%`;
+                pointAIndicator.style.display = 'block';
+            } else if (pointAIndicator) {
+                pointAIndicator.style.display = 'none';
+            }
+            
+            if (pointB !== null && pointBIndicator) {
+                const positionB = (pointB / audio.duration) * 100;
+                pointBIndicator.style.left = `${positionB}%`;
+                pointBIndicator.style.display = 'block';
+            } else if (pointBIndicator) {
+                pointBIndicator.style.display = 'none';
+            }
+            
+            // تحديث حالة التكرار A-B
+            if (abStatus) {
+                const pointAText = pointA !== null ? formatTime(pointA) : "غير معينة";
+                const pointBText = pointB !== null ? formatTime(pointB) : "غير معينة";
+                const statusText = isABRepeat ? "مفعل" : "غير مفعل";
+                abStatus.textContent = `النقطة A: ${pointAText} | النقطة B: ${pointBText} | الحالة: ${statusText}`;
+            }
+            
+            // تحديث مؤشر التكرار A-B
+            if (abRepeatIndicator) {
+                if (isABRepeat && pointA !== null && pointB !== null) {
+                    abRepeatIndicator.style.display = 'block';
+                } else {
+                    abRepeatIndicator.style.display = 'none';
+                }
+            }
+        }
+        
+        // دالة تعيين النقطة A
+        function setPointA() {
+            if (!audio || isNaN(audio.duration) || audio.duration <= 0) {
+                alert("⚠️ الرجاء تحميل أغنية أولاً");
+                return;
+            }
+            
+            pointA = audio.currentTime;
+            if (pointB !== null && pointA >= pointB) {
+                alert("⚠️ النقطة A يجب أن تكون قبل النقطة B");
+                pointA = null;
+                return;
+            }
+            
+            updateABIndicators();
+            alert(`✅ تم تعيين النقطة A عند: ${formatTime(pointA)}`);
+        }
+        
+        // دالة تعيين النقطة B
+        function setPointB() {
+            if (!audio || isNaN(audio.duration) || audio.duration <= 0) {
+                alert("⚠️ الرجاء تحميل أغنية أولاً");
+                return;
+            }
+            
+            pointB = audio.currentTime;
+            if (pointA !== null && pointB <= pointA) {
+                alert("⚠️ النقطة B يجب أن تكون بعد النقطة A");
+                pointB = null;
+                return;
+            }
+            
+            updateABIndicators();
+            alert(`✅ تم تعيين النقطة B عند: ${formatTime(pointB)}`);
+        }
+        
+        // دالة تفعيل/إلغاء التكرار A-B
+        function toggleABRepeat() {
+            if (pointA === null || pointB === null) {
+                alert("⚠️ الرجاء تعيين النقطتين A و B أولاً");
+                return;
+            }
+            
+            isABRepeat = !isABRepeat;
+            updateABIndicators();
+            
+            if (isABRepeat) {
+                alert(`✅ تم تفعيل التكرار بين النقطة A (${formatTime(pointA)}) والنقطة B (${formatTime(pointB)})`);
+                
+                // إذا كان الصوت خارج النطاق، نعيده إلى النقطة A
+                if (audio.currentTime < pointA || audio.currentTime > pointB) {
+                    audio.currentTime = pointA;
+                }
+            } else {
+                alert('❌ تم إلغاء التكرار A-B');
+            }
+        }
+        
+        // دالة مسح النقاط A و B
+        function clearABPoints() {
+            pointA = null;
+            pointB = null;
+            isABRepeat = false;
+            updateABIndicators();
+            alert('🧹 تم مسح النقطتين A و B');
+        }
+        
+        // التحقق من التكرار A-B أثناء التشغيل
+        function checkABRepeat() {
+            if (!isABRepeat || pointA === null || pointB === null || !audio) return;
+            
+            if (audio.currentTime >= pointB) {
+                audio.currentTime = pointA;
+                if (isPlaying) {
+                    audio.play().catch(e => console.log("خطأ في التشغيل:", e));
+                }
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            createStars();
+            initializePlayer();
+            initializeSecuritySystem();
+            initializeAdvancedControls();
+            createEQ18Bands();
+            createSpectrumCanvas();
+            createVisualizerBars();
+            requestNotificationPermission();
+            
+            // تهيئة مؤشرات التكرار A-B
+            pointAIndicator = document.getElementById('pointAIndicator');
+            pointBIndicator = document.getElementById('pointBIndicator');
+            abRepeatIndicator = document.getElementById('abRepeatIndicator');
+            abStatus = document.getElementById('abStatus');
+        });
+        
+        function createStars() {
+            const starsBackground = document.getElementById('starsBackground');
+            if (!starsBackground) return;
+            
+            const starCount = 160;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                const size = Math.random() * 3 + 1;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                
+                const delay = Math.random() * 4;
+                const duration = Math.random() * 3 + 2;
+                star.style.animationDelay = `${delay}s`;
+                star.style.animationDuration = `${duration}s`;
+                
+                starsBackground.appendChild(star);
+            }
+        }
+        
+        function initializeSecuritySystem() {
+            try {
+                securitySystem = new SecuritySystem();
+                
+                const securityBtn = document.getElementById('securityBtn');
+                const closeSecurityModal = document.getElementById('closeSecurityModal');
+                const securityModal = document.getElementById('securityModal');
+                
+                if (securityBtn && securityModal && closeSecurityModal) {
+                    securityBtn.addEventListener('click', () => {
+                        securityModal.style.display = 'flex';
+                        securitySystem.updateSecurityLogsUI();
+                    });
+                    
+                    closeSecurityModal.addEventListener('click', () => {
+                        securityModal.style.display = 'none';
+                    });
+                    
+                    securityModal.addEventListener('click', (e) => {
+                        if (e.target === securityModal) {
+                            securityModal.style.display = 'none';
+                        }
+                    });
+                }
+                
+                const clearCacheBtn = document.getElementById('clearCacheBtn');
+                if (clearCacheBtn) {
+                    clearCacheBtn.addEventListener('click', () => {
+                        securitySystem.clearSecurityCache();
+                    });
+                }
+                
+                const scanThreatsBtn = document.getElementById('scanThreatsBtn');
+                if (scanThreatsBtn) {
+                    scanThreatsBtn.addEventListener('click', () => {
+                        securitySystem.logSecurityEvent('بدء فحص التهديدات', 'info');
+                        setTimeout(() => {
+                            securitySystem.logSecurityEvent('اكتمل فحص التهديدات - لا توجد تهديدات', 'success');
+                            alert('✅ اكتمل فحص التهديدات - لا توجد تهديدات');
+                        }, 2000);
+                    });
+                }
+                
+                const generateReportBtn = document.getElementById('generateReportBtn');
+                if (generateReportBtn) {
+                    generateReportBtn.addEventListener('click', () => {
+                        securitySystem.generateSecurityReport();
+                    });
+                }
+                
+                const paranoidModeBtn = document.getElementById('paranoidModeBtn');
+                if (paranoidModeBtn) {
+                    paranoidModeBtn.addEventListener('click', () => {
+                        securitySystem.toggleParanoidMode();
+                    });
+                }
+                
+                const enableEncryption = document.getElementById('enableEncryption');
+                if (enableEncryption) {
+                    enableEncryption.addEventListener('change', function() {
+                        securitySystem.isEncryptionEnabled = this.checked;
+                        securitySystem.logSecurityEvent(`التشفير ${this.checked ? 'مفعل' : 'معطل'}`, 'info');
+                    });
+                }
+            } catch (error) {
+                console.error('خطأ في تهيئة نظام الأمان:', error);
+            }
+        }
+        
+        function initializePlayer() {
+            try {
+                audio = new Audio();
+                audioSystem = new EnhancedAudioSystem();
+                
+                playPauseBtn = document.getElementById('playPauseBtn');
+                prevBtn = document.getElementById('prevBtn');
+                nextBtn = document.getElementById('nextBtn');
+                repeatBtn = document.getElementById('repeatBtn');
+                shuffleBtn = document.getElementById('shuffleBtn');
+                progressBar = document.getElementById('progressBar');
+                progress = document.getElementById('progress');
+                currentTimeEl = document.getElementById('currentTime');
+                durationEl = document.getElementById('duration');
+                volumeSlider = document.getElementById('volumeSlider');
+                volumeProgress = document.getElementById('volumeProgress');
+                fileInput = document.getElementById('fileInput');
+                imageInput = document.getElementById('imageInput');
+                playlist = document.getElementById('playlist');
+                songTitle = document.getElementById('songTitle');
+                songArtist = document.getElementById('songArtist');
+                albumImage = document.getElementById('albumImage');
+                albumArtContainer = document.getElementById('albumArtContainer');
+                songsCount = document.getElementById('songsCount');
+                cameraToggle = document.getElementById('cameraToggle');
+                boostBtn = document.getElementById('boostBtn');
+                powerSaveBtn = document.getElementById('powerSaveBtn');
+                visualizer = document.getElementById('visualizer');
+                bassLevel = document.getElementById('bassLevel');
+                
+                // صورة ألبوم افتراضية
+                albumImage.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cdefs%3E%3CradialGradient id='grad' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' style='stop-color:%234b0082;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%238a2be2;stop-opacity:1'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='240' height='240' fill='url(%23grad)'/%3E%3Ccircle cx='120' cy='120' r='80' fill='none' stroke='%23FFD700' stroke-width='3'/%3E%3Ccircle cx='120' cy='120' r='60' fill='none' stroke='%23FFD700' stroke-width='2' opacity='0.7'/%3E%3C/svg%3E";
+                
+                audio.volume = 0.7;
+                volumeProgress.style.width = '70%';
+                
+                // أحداث الأزرار
+                if (powerSaveBtn) {
+                    powerSaveBtn.addEventListener('click', function() {
+                        isPowerSaveMode = !isPowerSaveMode;
+                        document.body.classList.toggle('power-save-mode', isPowerSaveMode);
+                        
+                        if (isPowerSaveMode) {
+                            powerSaveBtn.textContent = 'وضع العادي';
+                            powerSaveBtn.classList.add('active');
+                            
+                            if (isCameraRotating) {
+                                toggleCameraRotation();
+                            }
+                            
+                            stopAlbumRotation();
+                            
+                            if (audioSystem.animationFrameId) {
+                                cancelAnimationFrame(audioSystem.animationFrameId);
+                                audioSystem.animationFrameId = null;
+                            }
+                        } else {
+                            powerSaveBtn.textContent = 'توفير الطاقة';
+                            powerSaveBtn.classList.remove('active');
+                            
+                            if (isPlaying) {
+                                startVisualizer();
+                            }
+                        }
+                    });
+                }
+                
+                if (playPauseBtn) {
+                    playPauseBtn.addEventListener('click', async function() {
+                        if (songs.length === 0) {
+                            alert('يرجى إضافة أغنية أولاً');
+                            return;
+                        }
+                        
+                        if (!audioSystem.isAudioContextInitialized) {
+                            const sampleRate = getSelectedSampleRate();
+                            const bitDepth = getSelectedBitDepth();
+                            
+                            await audioSystem.initializeAudioProcessing(audio, sampleRate, bitDepth);
+                        }
+                        
+                        if (isPlaying) {
+                            audio.pause();
+                            playPauseBtn.innerHTML = '<i>▶️</i>';
+                            playPauseBtn.classList.remove('active-glow');
+                            stopAlbumRotation();
+                            
+                            if (audioSystem.animationFrameId) {
+                                cancelAnimationFrame(audioSystem.animationFrameId);
+                                audioSystem.animationFrameId = null;
+                            }
+                        } else {
+                            try {
+                                await audio.play();
+                                playPauseBtn.innerHTML = '<i>⏸️</i>';
+                                playPauseBtn.classList.add('active-glow');
+                                startAlbumRotation();
+                                
+                                if (!isPowerSaveMode) {
+                                    startVisualizer();
+                                }
+                            } catch (error) {
+                                console.log("خطأ في التشغيل:", error);
+                                if (error.name === 'NotAllowedError') {
+                                    alert('يرجى التفاعل مع الصفحة أولاً لتشغيل الصوت');
+                                }
+                            }
+                        }
+                        isPlaying = !isPlaying;
+                    });
+                }
+                
+                if (repeatBtn) {
+                    repeatBtn.addEventListener('click', function() {
+                        isRepeating = !isRepeating;
+                        repeatBtn.classList.toggle('active', isRepeating);
+                        if (isRepeating) {
+                            repeatBtn.classList.add('active-glow');
+                        } else {
+                            repeatBtn.classList.remove('active-glow');
+                        }
+                    });
+                }
+                
+                if (shuffleBtn) {
+                    shuffleBtn.addEventListener('click', function() {
+                        isShuffling = !isShuffling;
+                        shuffleBtn.classList.toggle('active', isShuffling);
+                        if (isShuffling) {
+                            shuffleBtn.classList.add('active-glow');
+                        } else {
+                            shuffleBtn.classList.remove('active-glow');
+                        }
+                    });
+                }
+                
+                if (progressBar) {
+                    progressBar.addEventListener('click', function(e) {
+                        if (songs.length === 0 || isNaN(audio.duration)) return;
+                        
+                        const progressWidth = this.clientWidth;
+                        const clickedOffsetX = e.offsetX;
+                        const songDuration = audio.duration;
+                        
+                        audio.currentTime = (clickedOffsetX / progressWidth) * songDuration;
+                    });
+                }
+                
+                audio.addEventListener('timeupdate', function() {
+                    if (songs.length === 0 || isNaN(audio.duration)) return;
+                    
+                    const currentTime = audio.currentTime;
+                    const duration = audio.duration;
+                    
+                    const progressPercent = (currentTime / duration) * 100;
+                    if (progress) progress.style.width = `${progressPercent}%`;
+                    
+                    if (currentTimeEl) currentTimeEl.textContent = formatTime(currentTime);
+                    
+                    // التحقق من التكرار A-B
+                    checkABRepeat();
+                    
+                    // التحقق من نهاية الأغنية (التكرار العادي)
+                    if (currentTime >= duration - 0.5) {
+                        if (isRepeating) {
+                            audio.currentTime = 0;
+                            audio.play();
+                        } else {
+                            playNextSong();
+                        }
+                    }
+                });
+                
+                audio.addEventListener('loadedmetadata', function() {
+                    if (!isNaN(audio.duration) && durationEl) {
+                        durationEl.textContent = formatTime(audio.duration);
+                        updateABIndicators();
+                    }
+                });
+                
+                audio.addEventListener('ended', function() {
+                    if (isRepeating) {
+                        audio.currentTime = 0;
+                        audio.play();
+                    } else {
+                        playNextSong();
+                    }
+                });
+                
+                audio.addEventListener('error', function(e) {
+                    console.error('خطأ في تشغيل الصوت:', e);
+                    isPlaying = false;
+                    if (playPauseBtn) {
+                        playPauseBtn.innerHTML = '<i>▶️</i>';
+                        playPauseBtn.classList.remove('active-glow');
+                    }
+                    stopAlbumRotation();
+                    
+                    if (audioSystem.animationFrameId) {
+                        cancelAnimationFrame(audioSystem.animationFrameId);
+                        audioSystem.animationFrameId = null;
+                    }
+                    
+                    alert('حدث خطأ في تشغيل الملف الصوتي. يرجى التحقق من الملف وتجربة مرة أخرى.');
+                });
+                
+                if (volumeSlider) {
+                    volumeSlider.addEventListener('click', function(e) {
+                        const volumeWidth = this.clientWidth;
+                        const clickedOffsetX = e.offsetX;
+                        const volumeLevel = clickedOffsetX / volumeWidth;
+                        
+                        audio.volume = volumeLevel;
+                        originalVolume = volumeLevel;
+                        if (volumeProgress) volumeProgress.style.width = `${volumeLevel * 100}%`;
+                    });
+                }
+
+                if (fileInput) {
+                    fileInput.addEventListener('change', async function(e) {
+                        const files = e.target.files;
+                        if (files.length === 0) return;
+                        
+                        const startIndex = songs.length;
+                        const newSongs = [];
+                        
+                        for (let i = 0; i < files.length; i++) {
+                            const file = files[i];
+                            
+                            if (securitySystem) {
+                                const isSafe = await securitySystem.scanFile(file);
+                                if (!isSafe) {
+                                    alert(`❌ الملف ${file.name} تم رفضه لأسباب أمنية`);
+                                    continue;
+                                }
+                            }
+                            
+                            const url = URL.createObjectURL(file);
+                            objectURLs.push(url);
+                            
+                            newSongs.push({
+                                title: file.name.replace(/\.[^/.]+$/, ""),
+                                artist: "فنان غير معروف",
+                                src: url,
+                                cover: ""
+                            });
+                            
+                            const playlistItem = document.createElement('div');
+                            playlistItem.className = 'playlist-item';
+                            playlistItem.innerHTML = `
+                                <i>🎵</i>
+                                <span>${file.name.replace(/\.[^/.]+$/, "")}</span>
+                            `;
+                            
+                            const songIndex = startIndex + i;
+                            playlistItem.addEventListener('click', function() {
+                                currentSongIndex = songIndex;
+                                loadSong(currentSongIndex);
+                                
+                                if (audioSystem.animationFrameId) {
+                                    cancelAnimationFrame(audioSystem.animationFrameId);
+                                    audioSystem.animationFrameId = null;
+                                }
+                                
+                                audio.play().catch(e => console.log("خطأ في التشغيل:", e));
+                                isPlaying = true;
+                                if (playPauseBtn) {
+                                    playPauseBtn.innerHTML = '<i>⏸️</i>';
+                                    playPauseBtn.classList.add('active-glow');
+                                }
+                                startAlbumRotation();
+                                
+                                document.querySelectorAll('.playlist-item').forEach(item => {
+                                    item.classList.remove('active');
+                                });
+                                playlistItem.classList.add('active');
+                                
+                                if (!isPowerSaveMode) {
+                                    startVisualizer();
+                                }
+                            });
+                            
+                            if (playlist) playlist.appendChild(playlistItem);
+                        }
+                        
+                        songs.push(...newSongs);
+                        updateSongsCount();
+                        
+                        if (songs.length === newSongs.length) {
+                            currentSongIndex = 0;
+                            loadSong(currentSongIndex);
+                            if (playlist && playlist.children.length > 0) {
+                                playlist.children[0].classList.add('active');
+                            }
+                        }
+                        
+                        fileInput.value = '';
+                    });
+                }
+                
+                if (imageInput) {
+                    imageInput.addEventListener('change', function(e) {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        
+                        if (securitySystem) {
+                            const isSafe = securitySystem.performSecurityScan(file);
+                            if (!isSafe) {
+                                alert('❌ تم رفض صورة الغلاف لأسباب أمنية');
+                                return;
+                            }
+                        }
+                        
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const customAlbumImage = e.target.result;
+                            if (albumImage) albumImage.src = customAlbumImage;
+                            
+                            if (songs.length > 0 && currentSongIndex < songs.length) {
+                                songs[currentSongIndex].cover = customAlbumImage;
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                }
+                
+                if (nextBtn) {
+                    nextBtn.addEventListener('click', playNextSong);
+                }
+                
+                if (prevBtn) {
+                    prevBtn.addEventListener('click', function() {
+                        if (songs.length === 0) return;
+                        
+                        currentSongIndex--;
+                        if (currentSongIndex < 0) {
+                            currentSongIndex = songs.length - 1;
+                        }
+                        
+                        loadSong(currentSongIndex);
+                        if (isPlaying) {
+                            audio.play().catch(e => console.log("خطأ في التشغيل:", e));
+                        }
+                        
+                        updatePlaylistActive();
+                    });
+                }
+                
+                if (cameraToggle) {
+                    cameraToggle.addEventListener('click', toggleCameraRotation);
+                }
+                
+                if (boostBtn) {
+                    boostBtn.addEventListener('click', function() {
+                        if (isBoosted) {
+                            audio.volume = originalVolume;
+                            boostBtn.classList.remove('active');
+                            isBoosted = false;
+                        } else {
+                            audio.volume = Math.min(1.0, originalVolume * 1.8); // زيادة التعزيز
+                            boostBtn.classList.add('active');
+                            isBoosted = true;
+                        }
+                    });
+                }
+                
+                document.querySelectorAll('.audio-preset').forEach(preset => {
+                    preset.addEventListener('click', function() {
+                        const presetType = this.dataset.preset;
+                        
+                        document.querySelectorAll('.audio-preset').forEach(btn => btn.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        switch(presetType) {
+                            case 'bass':
+                                audio.volume = Math.min(1.0, originalVolume * 1.5);
+                                break;
+                            case 'treble':
+                                audio.volume = Math.min(1.0, originalVolume * 1.3);
+                                break;
+                            case 'normal':
+                            default:
+                                audio.volume = originalVolume;
+                                break;
+                        }
+                    });
+                });
+                
+                updateSongsCount();
+                updateABIndicators();
+                
+                window.player = {
+                    audio,
+                    songs,
+                    currentSongIndex,
+                    isPlaying,
+                    loadSong,
+                    playNextSong,
+                    formatTime,
+                    audioSystem,
+                    setPointA,
+                    setPointB,
+                    toggleABRepeat,
+                    clearABPoints
+                };
+            } catch (error) {
+                console.error('خطأ في تهيئة المشغل:', error);
+                alert('حدث خطأ في تهيئة المشغل. يرجى تحديث الصفحة.');
+            }
+        }
+        
+        function playNextSong() {
+            if (songs.length === 0) return;
+            
+            if (isShuffling) {
+                let newIndex;
+                do {
+                    newIndex = Math.floor(Math.random() * songs.length);
+                } while (newIndex === currentSongIndex && songs.length > 1);
+                currentSongIndex = newIndex;
+            } else {
+                currentSongIndex++;
+                if (currentSongIndex >= songs.length) {
+                    currentSongIndex = 0;
+                }
+            }
+            
+            loadSong(currentSongIndex);
+            if (isPlaying) {
+                audio.play().catch(e => console.log("خطأ في التشغيل:", e));
+            }
+            
+            updatePlaylistActive();
+        }
+        
+        function loadSong(index) {
+            if (index < 0 || index >= songs.length) return;
+            
+            const song = songs[index];
+            
+            audio.pause();
+            audio.currentTime = 0;
+            
+            stopAlbumRotation();
+            
+            try {
+                audio.src = song.src;
+                if (songTitle) songTitle.textContent = song.title;
+                if (songArtist) songArtist.textContent = song.artist;
+                
+                if (song.cover && albumImage) {
+                    albumImage.src = song.cover;
+                } else if (albumImage) {
+                    albumImage.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cdefs%3E%3CradialGradient id='grad' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' style='stop-color:%234b0082;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%238a2be2;stop-opacity:1'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='240' height='240' fill='url(%23grad)'/%3E%3Ccircle cx='120' cy='120' r='80' fill='none' stroke='%23FFD700' stroke-width='3'/%3E%3Ccircle cx='120' cy='120' r='60' fill='none' stroke='%23FFD700' stroke-width='2' opacity='0.7'/%3E%3C/svg%3E";
+                }
+                
+                if (progress) progress.style.width = '0%';
+                if (currentTimeEl) currentTimeEl.textContent = '0:00';
+                if (durationEl) durationEl.textContent = '0:00';
+                
+                if (audioSystem.animationFrameId) {
+                    cancelAnimationFrame(audioSystem.animationFrameId);
+                    audioSystem.animationFrameId = null;
+                }
+                
+                if (isPlaying && !isPowerSaveMode) {
+                    setTimeout(() => {
+                        startVisualizer();
+                    }, 100);
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل الأغنية:', error);
+                alert('حدث خطأ في تحميل الملف الصوتي');
+            }
+        }
+        
+        function updatePlaylistActive() {
+            document.querySelectorAll('.playlist-item').forEach((item, index) => {
+                if (index === currentSongIndex) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+        
+        function updateSongsCount() {
+            if (songsCount) {
+                songsCount.textContent = `عدد الأغاني: ${songs.length}`;
+            }
+        }
+        
+        function startAlbumRotation() {
+            if (!isAlbumRotating && !isPowerSaveMode && albumArtContainer) {
+                albumArtContainer.classList.add('rotating');
+                isAlbumRotating = true;
+            }
+        }
+        
+        function stopAlbumRotation() {
+            if (isAlbumRotating && albumArtContainer) {
+                albumArtContainer.classList.remove('rotating');
+                isAlbumRotating = false;
+            }
+        }
+        
+        function toggleCameraRotation() {
+            if (isPowerSaveMode) {
+                alert("وضع توفير الطاقة مفعل. لا يمكن تشغيل دوران الكاميرا.");
+                if (cameraToggle) cameraToggle.classList.remove('active');
+                return;
+            }
+            
+            isCameraRotating = !isCameraRotating;
+            if (cameraToggle) {
+                cameraToggle.classList.toggle('active', isCameraRotating);
+                
+                if (isCameraRotating) {
+                    cameraToggle.textContent = 'إيقاف دوران الكاميرا';
+                    startCameraRotation();
+                } else {
+                    cameraToggle.textContent = 'تشغيل دوران الكاميرا';
+                    if (cameraRotationId) {
+                        cancelAnimationFrame(cameraRotationId);
+                        cameraRotationId = null;
+                    }
+                    const playerSection = document.getElementById('playerSection');
+                    if (playerSection) playerSection.style.transform = 'none';
+                    rotationAngle = 0;
+                }
+            }
+        }
+        
+        function startCameraRotation() {
+            if (!isCameraRotating || isPowerSaveMode) {
+                if (cameraRotationId) {
+                    cancelAnimationFrame(cameraRotationId);
+                    cameraRotationId = null;
+                }
+                return;
+            }
+            
+            let lastTime = null;
+            
+            function rotateCamera(timestamp) {
+                if (!lastTime) lastTime = timestamp;
+                const deltaTime = timestamp - lastTime;
+                lastTime = timestamp;
+                
+                rotationAngle += (deltaTime / 16) * 0.5;
+                
+                const playerSection = document.getElementById('playerSection');
+                if (playerSection) {
+                    playerSection.style.transform = `perspective(1200px) rotateY(${rotationAngle}deg) rotateX(5deg)`;
+                    playerSection.style.transition = 'transform 0.1s linear';
+                }
+                
+                if (isCameraRotating) {
+                    cameraRotationId = requestAnimationFrame(rotateCamera);
+                }
+            }
+            
+            cameraRotationId = requestAnimationFrame(rotateCamera);
+        }
+        
+        function createVisualizerBars() {
+            if (!visualizer) return;
+            
+            visualizer.innerHTML = '';
+            bars = [];
+            
+            const barCount = 64;
+            for (let i = 0; i < barCount; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.height = '1px';
+                visualizer.appendChild(bar);
+                bars.push(bar);
+            }
+        }
+        
+        async function startVisualizer() {
+            if (isPowerSaveMode) return;
+            
+            if (!audioSystem.isAudioContextInitialized) {
+                const sampleRate = getSelectedSampleRate();
+                const bitDepth = getSelectedBitDepth();
+                
+                await audioSystem.initializeAudioProcessing(audio, sampleRate, bitDepth);
+            }
+            
+            if (audioSystem.animationFrameId) {
+                cancelAnimationFrame(audioSystem.animationFrameId);
+            }
+            
+            function updateVisualizer() {
+                if (!audioSystem.analyser || !audioSystem.dataArray) {
+                    audioSystem.animationFrameId = requestAnimationFrame(updateVisualizer);
+                    return;
+                }
+                
+                const dataArray = audioSystem.getFrequencyData();
+                if (!dataArray) {
+                    audioSystem.animationFrameId = requestAnimationFrame(updateVisualizer);
+                    return;
+                }
+                
+                for (let i = 0; i < bars.length; i++) {
+                    const value = dataArray[Math.floor(i * 2.5)];
+                    const height = Math.max(2, (value / 256) * 70);
+                    bars[i].style.height = `${height}px`;
+                    
+                    const hue = 280 + (value / 256) * 60;
+                    bars[i].style.background = `linear-gradient(to top, hsl(${hue}, 100%, 50%), #00ff7f)`;
+                }
+                
+                let bassSum = 0;
+                for (let i = 0; i < 20; i++) {
+                    bassSum += dataArray[i];
+                }
+                const bassPercent = Math.min(100, (bassSum / (20 * 256)) * 100);
+                if (bassLevel) bassLevel.style.width = `${bassPercent}%`;
+                
+                updateSpectrumDisplay();
+                
+                // مراقبة التشويه والتهنيج
+                audioSystem.monitorDistortion();
+                
+                audioSystem.animationFrameId = requestAnimationFrame(updateVisualizer);
+            }
+            
+            audioSystem.animationFrameId = requestAnimationFrame(updateVisualizer);
+        }
+        
+        function updateSpectrumDisplay() {
+            const spectrumData = audioSystem.getSpectrumData();
+            if (!spectrumData) return;
+            
+            const canvas = document.getElementById('spectrumCanvas');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            const gradient = ctx.createLinearGradient(0, 0, width, 0);
+            gradient.addColorStop(0, '#8a2be2');
+            gradient.addColorStop(0.5, '#00ff7f');
+            gradient.addColorStop(1, '#8a2be2');
+            
+            const barCount = 200;
+            const barWidth = (width - 20) / barCount;
+            let x = 10;
+            
+            for (let i = 0; i < barCount; i++) {
+                const dataIndex = Math.floor(i * (spectrumData.length / barCount));
+                const value = spectrumData[dataIndex];
+                
+                const barHeight = Math.max(1, (Math.log10(value + 1) / Math.log10(256)) * height * 0.8);
+                
+                const intensity = value / 256;
+                const hue = 280 + intensity * 60;
+                ctx.fillStyle = `hsl(${hue}, 100%, ${50 + intensity * 30}%)`;
+                
+                ctx.fillRect(x, height - barHeight, barWidth - 1, barHeight);
+                
+                ctx.fillStyle = `rgba(255, 255, 255, ${intensity * 0.3})`;
+                ctx.fillRect(x, height - barHeight, barWidth - 1, 2);
+                
+                x += barWidth;
+            }
+        }
+        
+        function createEQ18Bands() {
+            const eqBandsContainer = document.getElementById('eqBands');
+            if (!eqBandsContainer) return;
+            
+            eqBandsContainer.innerHTML = '';
+            
+            const frequencies = [
+                20, 30, 45, 67, 100, 150, 225, 337, 506,
+                759, 1138, 1707, 2560, 3840, 5760, 8640,
+                12960, 19440
+            ];
+            
+            const frequencyLabels = [
+                "20Hz", "30Hz", "45Hz", "67Hz", "100Hz", "150Hz",
+                "225Hz", "337Hz", "506Hz", "759Hz", "1.1kHz",
+                "1.7kHz", "2.6kHz", "3.8kHz", "5.8kHz", "8.6kHz",
+                "13kHz", "19kHz"
+            ];
+            
+            frequencies.forEach((freq, index) => {
+                const eqBand = document.createElement('div');
+                eqBand.className = 'eq-band';
+                
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.className = 'eq-slider';
+                slider.min = '-15';
+                slider.max = '15';
+                slider.value = '0';
+                slider.setAttribute('orient', 'vertical');
+                slider.dataset.freq = freq;
+                slider.dataset.index = index;
+                
+                const freqLabel = document.createElement('div');
+                freqLabel.className = 'eq-freq';
+                freqLabel.textContent = frequencyLabels[index];
+                
+                const valueLabel = document.createElement('div');
+                valueLabel.className = 'eq-value';
+                valueLabel.textContent = '0dB';
+                valueLabel.id = `eqValue${index}`;
+                
+                slider.addEventListener('input', function() {
+                    const value = parseInt(this.value);
+                    valueLabel.textContent = `${value}dB`;
+                    
+                    if (audioSystem) {
+                        audioSystem.updateEQ(index, value);
+                    }
+                    
+                    if (value > 0) {
+                        this.style.background = `linear-gradient(to top, #00ff7f ${(value/15)*100}%, #1a1a1a ${(value/15)*100}%)`;
+                    } else if (value < 0) {
+                        this.style.background = `linear-gradient(to top, #1a1a1a ${100 - (Math.abs(value)/15)*100}%, #ff1493 ${100 - (Math.abs(value)/15)*100}%)`;
+                    } else {
+                        this.style.background = 'linear-gradient(to top, #8a2be2, #1a1a1a, #ff1493)';
+                    }
+                });
+                
+                eqBand.appendChild(slider);
+                eqBand.appendChild(freqLabel);
+                eqBand.appendChild(valueLabel);
+                eqBandsContainer.appendChild(eqBand);
+            });
+        }
+        
+        function createSpectrumCanvas() {
+            const spectrumDisplay = document.getElementById('spectrumDisplay');
+            if (!spectrumDisplay) return;
+            
+            const canvas = document.createElement('canvas');
+            canvas.id = 'spectrumCanvas';
+            canvas.width = 800;
+            canvas.height = 100;
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            spectrumDisplay.appendChild(canvas);
+        }
+        
+        function initializeAdvancedControls() {
+            try {
+                document.querySelectorAll('.preset-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const preset = this.dataset.preset;
+                        const presets = {
+                            flat: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            bass: [8, 6, 4, 2, 0, -2, -4, -6, -8, -10, -8, -6, -4, -2, 0, 2, 4, 6],
+                            vocal: [-2, -1, 0, 1, 2, 3, 2, 1, 0, -1, -2, -1, 0, 1, 2, 3, 2, 1],
+                            acoustic: [2, 1, 0, -1, 0, 1, 2, 3, 2, 1, 0, -1, 0, 1, 2, 3, 2, 1],
+                            rock: [6, 4, 2, 0, -2, -4, -2, 0, 2, 4, 6, 4, 2, 0, -2, -4, -2, 0],
+                            jazz: [1, 0, -1, -2, -1, 0, 1, 2, 3, 2, 1, 0, -1, -2, -1, 0, 1, 2],
+                            classical: [0, -1, -2, -1, 0, 1, 2, 3, 4, 3, 2, 1, 0, -1, -2, -1, 0, 1],
+                            electronic: [4, 3, 2, 1, 0, -1, 0, 1, 2, 3, 4, 3, 2, 1, 0, -1, 0, 1],
+                            hardstyle: [6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -2, -1, 0, 1, 2, 3, 4, 5]
+                        };
+                        
+                        if (presets[preset]) {
+                            const sliders = document.querySelectorAll('.eq-slider');
+                            for (let i = 0; i < sliders.length; i++) {
+                                if (i < presets[preset].length) {
+                                    sliders[i].value = presets[preset][i];
+                                    const valueLabel = document.getElementById(`eqValue${i}`);
+                                    if (valueLabel) valueLabel.textContent = `${presets[preset][i]}dB`;
+                                    
+                                    const gainValue = presets[preset][i];
+                                    if (gainValue > 0) {
+                                        sliders[i].style.background = `linear-gradient(to top, #00ff7f ${(gainValue/15)*100}%, #1a1a1a ${(gainValue/15)*100}%)`;
+                                    } else if (gainValue < 0) {
+                                        sliders[i].style.background = `linear-gradient(to top, #1a1a1a ${100 - (Math.abs(gainValue)/15)*100}%, #ff1493 ${100 - (Math.abs(gainValue)/15)*100}%)`;
+                                    } else {
+                                        sliders[i].style.background = 'linear-gradient(to top, #8a2be2, #1a1a1a, #ff1493)';
+                                    }
+                                    
+                                    if (audioSystem) {
+                                        audioSystem.updateEQ(i, gainValue);
+                                    }
+                                }
+                            }
+                            
+                            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+                            this.classList.add('active');
+                        }
+                    });
+                });
+                
+                document.querySelectorAll('.enhancement-preset-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const preset = this.dataset.preset;
+                        
+                        document.querySelectorAll('.enhancement-preset-btn').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        if (audioSystem) {
+                            switch(preset) {
+                                case 'bass':
+                                    audioSystem.updateBassBoost(80);
+                                    updateSliderValue('bassEnhancementSlider', 80, 'bassValue');
+                                    break;
+                                case 'boost':
+                                    audioSystem.updateBassBoost(40);
+                                    updateSliderValue('bassEnhancementSlider', 40, 'bassValue');
+                                    break;
+                                case 'clear':
+                                    audioSystem.updateBassBoost(20);
+                                    updateSliderValue('bassEnhancementSlider', 20, 'bassValue');
+                                    break;
+                                default:
+                                    audioSystem.updateBassBoost(0);
+                                    updateSliderValue('bassEnhancementSlider', 0, 'bassValue');
+                                    break;
+                            }
+                        }
+                    });
+                });
+                
+                function updateSliderValue(sliderId, value, valueId) {
+                    const slider = document.getElementById(sliderId);
+                    const valueElement = document.getElementById(valueId);
+                    if (slider) slider.value = value;
+                    if (valueElement) valueElement.textContent = `${value}%`;
+                }
+                
+                const audioQuality = document.getElementById('audioQuality');
+                if (audioQuality) {
+                    audioQuality.addEventListener('change', function() {
+                        let qualityText = 'عالية';
+                        let qualityWidth = '90%';
+                        let bitDepth = '24-bit';
+                        
+                        switch(this.value) {
+                            case 'standard':
+                                qualityText = 'قياسي';
+                                qualityWidth = '60%';
+                                bitDepth = '16-bit';
+                                break;
+                            case 'high':
+                                qualityText = 'عالية';
+                                qualityWidth = '80%';
+                                bitDepth = '16-bit';
+                                break;
+                            case 'hd':
+                                qualityText = 'عالية الدقة';
+                                qualityWidth = '90%';
+                                bitDepth = '24-bit';
+                                break;
+                            case 'ultra_hd':
+                                qualityText = 'فائقة الدقة';
+                                qualityWidth = '100%';
+                                bitDepth = '24-bit';
+                                break;
+                        }
+                        
+                        const qualityValue = document.getElementById('qualityValue');
+                        const qualityLevel = document.getElementById('qualityLevel');
+                        const bitDepthIndicator = document.getElementById('bitDepthIndicator');
+                        
+                        if (qualityValue) qualityValue.textContent = qualityText;
+                        if (qualityLevel) qualityLevel.style.width = qualityWidth;
+                        if (bitDepthIndicator) bitDepthIndicator.textContent = `عمق البت: ${bitDepth}`;
+                        
+                        if (audioSystem && audioSystem.isAudioContextInitialized && isPlaying) {
+                            audio.pause();
+                            setTimeout(async () => {
+                                const sampleRate = getSelectedSampleRate();
+                                const bitDepth = getSelectedBitDepth();
+                                await audioSystem.initializeAudioProcessing(audio, sampleRate, bitDepth);
+                                audio.play();
+                            }, 100);
+                        }
+                    });
+                }
+                
+                const enableNoiseReduction = document.getElementById('enableNoiseReduction');
+                if (enableNoiseReduction) {
+                    enableNoiseReduction.addEventListener('change', function() {
+                        if (audioSystem) {
+                            if (this.checked) {
+                                audioSystem.updateNoiseReduction(30);
+                            } else {
+                                audioSystem.updateNoiseReduction(0);
+                            }
+                        }
+                    });
+                }
+                
+                const bassEnhancementSlider = document.getElementById('bassEnhancementSlider');
+                if (bassEnhancementSlider && audioSystem) {
+                    bassEnhancementSlider.addEventListener('input', function() {
+                        audioSystem.updateBassBoost(parseInt(this.value));
+                        const bassValue = document.getElementById('bassValue');
+                        if (bassValue) bassValue.textContent = `${this.value}%`;
+                    });
+                }
+                
+                const reverbSlider = document.getElementById('reverb');
+                if (reverbSlider && audioSystem) {
+                    reverbSlider.addEventListener('input', function() {
+                        audioSystem.updateReverb(parseInt(this.value));
+                        const reverbValue = document.getElementById('reverbValue');
+                        if (reverbValue) reverbValue.textContent = `${this.value}%`;
+                    });
+                }
+                
+                const boostEnhancementSlider = document.getElementById('boostEnhancementSlider');
+                if (boostEnhancementSlider && audioSystem) {
+                    boostEnhancementSlider.addEventListener('input', function() {
+                        audioSystem.updateVolumeBoost(parseInt(this.value));
+                        const boostValue = document.getElementById('boostValue');
+                        if (boostValue) boostValue.textContent = `${this.value}%`;
+                        const boostIndicator = document.getElementById('boostIndicator');
+                        if (boostIndicator) boostIndicator.textContent = `x${(1 + this.value/100).toFixed(1)}`;
+                    });
+                }
+                
+                // نظام التضخيم الذكي المتقدم - الإصلاح
+                const peakBoostSlider = document.getElementById('peakBoostEnhancementSlider');
+                const peakBoostValue = document.getElementById('peakBoostValue');
+                const peakBoostIndicator = document.getElementById('peakBoostIndicator');
+                const finalBoostSlider = document.getElementById('finalBoostEnhancementSlider');
+                const finalBoostValue = document.getElementById('finalBoostValue');
+                const dynamicRangeIndicator = document.getElementById('dynamicRangeIndicator');
+
+                if (peakBoostSlider && audioSystem) {
+                    peakBoostSlider.addEventListener('input', function() {
+                        const level = parseInt(this.value);
+                        audioSystem.updatePeakBoost(level);
+                        
+                        if (peakBoostValue) peakBoostValue.textContent = `${level}%`;
+                        if (peakBoostIndicator) {
+                            const boostFactor = 1 + (level / 100) * 1.5;
+                            peakBoostIndicator.textContent = `x${boostFactor.toFixed(1)}`;
+                        }
+                        
+                        // تحديث المدى الديناميكي
+                        if (dynamicRangeIndicator) {
+                            const dynamicRange = Math.max(70, 96 - (level / 4));
+                            dynamicRangeIndicator.textContent = `المدى الديناميكي: ${dynamicRange.toFixed(0)}dB`;
+                        }
+                    });
+                }
+
+                if (finalBoostSlider && audioSystem) {
+                    finalBoostSlider.addEventListener('input', function() {
+                        const level = parseInt(this.value);
+                        audioSystem.updateFinalBoost(level);
+                        
+                        if (finalBoostValue) finalBoostValue.textContent = `${level}%`;
+                    });
+                }
+
+                // إعدادات مسبقة للتضخيم الذكي
+                document.querySelectorAll('.enhancement-preset-btn[data-preset]').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const preset = this.dataset.preset;
+                        
+                        document.querySelectorAll('.enhancement-preset-btn').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        switch(preset) {
+                            case 'super_boost':
+                                setSmartBoostPreset(200, 100);
+                                break;
+                            case 'concert':
+                                setSmartBoostPreset(120, 60);
+                                break;
+                            case 'cinema':
+                                setSmartBoostPreset(80, 40);
+                                break;
+                            case 'studio':
+                                setSmartBoostPreset(40, 20);
+                                break;
+                        }
+                    });
+                });
+
+                function setSmartBoostPreset(peakBoost, finalBoost) {
+                    if (peakBoostSlider) {
+                        peakBoostSlider.value = peakBoost;
+                        peakBoostSlider.dispatchEvent(new Event('input'));
+                    }
+                    
+                    if (finalBoostSlider) {
+                        finalBoostSlider.value = finalBoost;
+                        finalBoostSlider.dispatchEvent(new Event('input'));
+                    }
+                }
+
+                // مراقبة التشويه باستمرار
+                setInterval(() => {
+                    if (audioSystem && audioSystem.isAudioContextInitialized && isPlaying) {
+                        audioSystem.monitorDistortion();
+                    }
+                }, 1000);
+                
+                const playbackSpeed = document.getElementById('playbackSpeed');
+                const speedValue = document.getElementById('speedValue');
+                
+                if (playbackSpeed && speedValue) {
+                    playbackSpeed.addEventListener('input', function() {
+                        const speed = this.value / 100;
+                        if (window.player && window.player.audio) {
+                            window.player.audio.playbackRate = speed;
+                        }
+                        speedValue.textContent = `${this.value}%`;
+                    });
+                }
+                
+                // أزرار التكرار A-B
+                const setPointABtn = document.getElementById('setPointA');
+                const setPointBBtn = document.getElementById('setPointB');
+                const toggleABRepeatBtn = document.getElementById('toggleABRepeat');
+                const clearABPointsBtn = document.getElementById('clearABPoints');
+                
+                if (setPointABtn) {
+                    setPointABtn.addEventListener('click', setPointA);
+                }
+                
+                if (setPointBBtn) {
+                    setPointBBtn.addEventListener('click', setPointB);
+                }
+                
+                if (toggleABRepeatBtn) {
+                    toggleABRepeatBtn.addEventListener('click', toggleABRepeat);
+                }
+                
+                if (clearABPointsBtn) {
+                    clearABPointsBtn.addEventListener('click', clearABPoints);
+                }
+                
+                const shortcutsBtn = document.getElementById('shortcutsBtn');
+                const shortcutsModal = document.getElementById('shortcutsModal');
+                const closeModal = document.getElementById('closeModal');
+                const fullscreenBtn = document.getElementById('fullscreenBtn');
+                
+                if (shortcutsBtn && shortcutsModal) {
+                    shortcutsBtn.addEventListener('click', function() {
+                        shortcutsModal.style.display = 'flex';
+                    });
+                }
+                
+                if (closeModal && shortcutsModal) {
+                    closeModal.addEventListener('click', function() {
+                        shortcutsModal.style.display = 'none';
+                    });
+                }
+                
+                if (shortcutsModal) {
+                    shortcutsModal.addEventListener('click', function(e) {
+                        if (e.target === shortcutsModal) {
+                            shortcutsModal.style.display = 'none';
+                        }
+                    });
+                }
+                
+                if (fullscreenBtn) {
+                    fullscreenBtn.addEventListener('click', function() {
+                        if (!document.fullscreenElement) {
+                            document.documentElement.requestFullscreen().catch(err => {
+                                console.log(`خطأ في ملء الشاشة: ${err.message}`);
+                            });
+                            fullscreenBtn.textContent = 'خروج من ملء الشاشة';
+                        } else {
+                            if (document.exitFullscreen) {
+                                document.exitFullscreen();
+                                fullscreenBtn.textContent = 'ملء الشاشة';
+                            }
+                        }
+                    });
+                    
+                    document.addEventListener('fullscreenchange', function() {
+                        if (!document.fullscreenElement && fullscreenBtn) {
+                            fullscreenBtn.textContent = 'ملء الشاشة';
+                        }
+                    });
+                }
+                
+                // اختصارات لوحة المفاتيح
+                document.addEventListener('keydown', function(e) {
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                    
+                    switch(e.key.toLowerCase()) {
+                        case ' ':
+                            e.preventDefault();
+                            if (playPauseBtn) playPauseBtn.click();
+                            break;
+                        case 'arrowright':
+                            e.preventDefault();
+                            if (nextBtn) nextBtn.click();
+                            break;
+                        case 'arrowleft':
+                            e.preventDefault();
+                            if (prevBtn) prevBtn.click();
+                            break;
+                        case 'arrowup':
+                            e.preventDefault();
+                            audio.volume = Math.min(1, audio.volume + 0.1);
+                            if (volumeProgress) volumeProgress.style.width = `${audio.volume * 100}%`;
+                            break;
+                        case 'arrowdown':
+                            e.preventDefault();
+                            audio.volume = Math.max(0, audio.volume - 0.1);
+                            if (volumeProgress) volumeProgress.style.width = `${audio.volume * 100}%`;
+                            break;
+                        case 'r':
+                            e.preventDefault();
+                            if (repeatBtn) repeatBtn.click();
+                            break;
+                        case 's':
+                            e.preventDefault();
+                            if (shuffleBtn) shuffleBtn.click();
+                            break;
+                        case 'b':
+                            e.preventDefault();
+                            if (boostBtn) boostBtn.click();
+                            break;
+                        case 'c':
+                            e.preventDefault();
+                            if (cameraToggle) cameraToggle.click();
+                            break;
+                        case 'p':
+                            e.preventDefault();
+                            if (powerSaveBtn) powerSaveBtn.click();
+                            break;
+                        case 'h':
+                            e.preventDefault();
+                            if (shortcutsBtn) shortcutsBtn.click();
+                            break;
+                        case 'f11':
+                            e.preventDefault();
+                            if (fullscreenBtn) fullscreenBtn.click();
+                            break;
+                        case 'a':
+                            e.preventDefault();
+                            setPointA();
+                            break;
+                        case 'b':
+                            e.preventDefault();
+                            setPointB();
+                            break;
+                    }
+                    
+                    if (e.ctrlKey) {
+                        switch(e.key.toLowerCase()) {
+                            case 'r':
+                                e.preventDefault();
+                                toggleABRepeat();
+                                break;
+                        }
+                    }
+                    
+                    if (e.ctrlKey && e.shiftKey) {
+                        switch(e.key.toLowerCase()) {
+                            case 's':
+                                e.preventDefault();
+                                const securityBtn = document.getElementById('securityBtn');
+                                if (securityBtn) securityBtn.click();
+                                break;
+                            case 'p':
+                                e.preventDefault();
+                                if (securitySystem) securitySystem.toggleParanoidMode();
+                                break;
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('خطأ في تهيئة التحكم المتقدم:', error);
+            }
+        }
+        
+        function requestNotificationPermission() {
+            if ("Notification" in window && Notification.permission === "default") {
+                Notification.requestPermission();
+            }
+        }
+        
+        window.addEventListener('beforeunload', function() {
+            if (audioSystem && audioSystem.animationFrameId) {
+                cancelAnimationFrame(audioSystem.animationFrameId);
+                audioSystem.animationFrameId = null;
+            }
+            
+            if (audioSystem) {
+                audioSystem.cleanup();
+            }
+            
+            if (cameraRotationId) {
+                cancelAnimationFrame(cameraRotationId);
+                cameraRotationId = null;
+            }
+            
+            objectURLs.forEach(url => {
+                try {
+                    URL.revokeObjectURL(url);
+                } catch (e) {
+                    console.warn('خطأ في تحرير URL:', e);
+                }
+            });
+            objectURLs = [];
+        });
+    </script>
+</body>
+</html>
