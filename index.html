@@ -148,13 +148,17 @@
 /* ============================================================
    1) WORKER — يحمّل engine.js / engine.wasm
    ============================================================ */
+const ENGINE_JS_URL = new URL('engine.js', window.location.href).href;
+
 const workerCode = `
 'use strict';
 let M = null, ready = false;
 
 try {
-  importScripts('engine.js');
-  createEngine().then(m => {
+  importScripts('${ENGINE_JS_URL}');
+  createEngine({
+    locateFile: (path) => new URL(path, '${ENGINE_JS_URL}').href
+  }).then(m => {
     M = m;
     M._engine_init();
     ready = true;
@@ -163,8 +167,7 @@ try {
     self.postMessage({type:'error', msg:'createEngine failed: ' + String(e)});
   });
 } catch(e) {
-  self.postMessage({type:'error', msg:'importScripts failed: ' + String(e) +
-    '\\n\\nتأكد من وجود engine.js و engine.wasm في نفس الفولدر.'});
+  self.postMessage({type:'error', msg:'importScripts failed: ' + String(e)});
 }
 
 function cstr(s) {
