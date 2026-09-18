@@ -146,26 +146,39 @@
 'use strict';
 
 /* ============================================================
-   1) WORKER — يحمّل engine.js / engine.wasm
+   1) WORKER — يحمّل chess.js / chess.wasm (non-modularized build)
    ============================================================ */
-const ENGINE_JS_URL = new URL('engine.js', window.location.href).href;
+const CHESS_JS_URL = new URL('chess.js', window.location.href).href;
 
 const workerCode = `
 'use strict';
 let M = null, ready = false;
 
+// ضبط Module قبل importScripts
+self.Module = {
+  locateFile: function(path) {
+    // لو الـbuild بيطلُب chess.wasm، رجّع الرابط المطلق
+    return new URL(path, '${CHESS_JS_URL}').href;
+  },
+  print: function(t) { /* console.log(t); */ },
+  printErr: function(t) { /* console.warn(t); */ },
+  onRuntimeInitialized: function() {
+    M = self.Module;
+    try {
+      M._engine_init();
+      ready = true;
+      self.postMessage({type:'ready'});
+    } catch(e) {
+      self.postMessage({type:'error', msg:'engine_init failed: ' + String(e)});
+    }
+  },
+  onAbort: function(what) {
+    self.postMessage({type:'error', msg:'WASM abort: ' + what});
+  }
+};
+
 try {
-  importScripts('${ENGINE_JS_URL}');
-  createEngine({
-    locateFile: (path) => new URL(path, '${ENGINE_JS_URL}').href
-  }).then(m => {
-    M = m;
-    M._engine_init();
-    ready = true;
-    self.postMessage({type:'ready'});
-  }).catch(e => {
-    self.postMessage({type:'error', msg:'createEngine failed: ' + String(e)});
-  });
+  importScripts('${CHESS_JS_URL}');
 } catch(e) {
   self.postMessage({type:'error', msg:'importScripts failed: ' + String(e)});
 }
