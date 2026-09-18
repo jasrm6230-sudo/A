@@ -39,7 +39,6 @@
     padding:16px;
   }
 
-  /* ======================= LAYOUT ======================= */
   .app{
     display:grid;
     grid-template-columns: 340px minmax(0,1fr);
@@ -53,7 +52,6 @@
     .board-col{order:1}
   }
 
-  /* ======================= PANEL ======================= */
   .panel{
     background:linear-gradient(180deg,var(--panel1),var(--panel2));
     border:1px solid var(--line);
@@ -109,9 +107,7 @@
     border-color:#60a5fa;color:#fff;
     box-shadow:0 8px 20px rgba(37,99,235,.38);
   }
-  .btn.ghost{background:transparent}
 
-  /* Range */
   input[type=range]{
     -webkit-appearance:none;appearance:none;
     width:100%;height:26px;background:transparent;cursor:pointer;
@@ -138,7 +134,6 @@
   }
   .ticks{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:-4px;padding:0 2px}
 
-  /* Status */
   .status{
     flex-direction:row;align-items:center;gap:10px;
     background:rgba(148,163,184,.07);
@@ -168,7 +163,6 @@
     word-break:break-all;
   }
 
-  /* Moves */
   .moves-wrap{flex:1;min-height:0}
   .moves{
     height:172px;overflow-y:auto;
@@ -192,7 +186,6 @@
   .mv-row .san.last{color:#93c5fd}
   .moves .empty{color:var(--muted);font-size:12px;text-align:center;padding:16px 0}
 
-  /* ======================= BOARD ======================= */
   .board-col{
     display:flex;flex-direction:column;gap:10px;align-items:center;
     width:100%;
@@ -276,7 +269,6 @@
     text-shadow:0 2px 3px rgba(0,0,0,.35);
   }
 
-  /* highlights */
   .sq.last::before{
     content:"";position:absolute;inset:0;
     background:rgba(255,214,64,.42);
@@ -313,7 +305,6 @@
     box-shadow:none;
   }
 
-  /* drag ghost */
   .drag-ghost{
     position:fixed;z-index:9999;pointer-events:none;
     display:flex;align-items:center;justify-content:center;
@@ -321,7 +312,6 @@
     filter:drop-shadow(0 10px 16px rgba(0,0,0,.55));
   }
 
-  /* thinking badge */
   .thinking{
     position:absolute;top:12px;left:50%;transform:translateX(-50%);
     display:flex;align-items:center;gap:8px;
@@ -341,7 +331,6 @@
   }
   @keyframes spin{to{transform:rotate(360deg)}}
 
-  /* ======================= OVERLAYS ======================= */
   .overlay{
     position:fixed;inset:0;z-index:10000;
     display:grid;place-items:center;
@@ -358,7 +347,7 @@
     padding:22px 26px;
     box-shadow:0 30px 80px rgba(0,0,0,.6);
     text-align:center;
-    max-width:min(92vw,420px);
+    max-width:min(92vw,460px);
   }
   .card h2{margin:0 0 6px;font-size:18px}
   .card p{margin:0;color:var(--muted);font-size:13px}
@@ -386,22 +375,12 @@
   .promo-btn:hover{background:rgba(59,130,246,.25);border-color:#60a5fa;transform:translateY(-2px)}
   .promo-btn.w{color:#fff;-webkit-text-stroke:2px #23282e;paint-order:stroke fill}
   .promo-btn.b{color:#242a31;-webkit-text-stroke:1.6px #0b0e12;paint-order:stroke fill}
-
-  .toast{
-    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
-    background:rgba(2,6,23,.92);
-    border:1px solid rgba(239,68,68,.5);
-    color:#fecaca;font-size:13px;font-weight:600;
-    padding:11px 18px;border-radius:12px;
-    z-index:10001;box-shadow:0 14px 40px rgba(0,0,0,.5);
-  }
 </style>
 </head>
 <body>
 
 <div class="app">
 
-  <!-- ==================== CONTROL PANEL ==================== -->
   <aside class="panel">
     <div class="brand">
       <div class="logo">♞</div>
@@ -438,7 +417,7 @@
     </div>
 
     <div class="section">
-      <div class="engine-info" id="engineInfo">engine: —</div>
+      <div class="engine-info" id="engineInfo">engine: loading…</div>
     </div>
 
     <div class="section moves-wrap">
@@ -447,7 +426,6 @@
     </div>
   </aside>
 
-  <!-- ==================== BOARD ==================== -->
   <section class="board-col">
     <div class="player top" id="playerTop">
       <span class="pdot b" id="dotTop"></span>
@@ -468,7 +446,6 @@
   </section>
 </div>
 
-<!-- Promotion dialog -->
 <div id="promo" class="overlay hidden">
   <div class="card">
     <h2>ترقية البيدق</h2>
@@ -477,7 +454,6 @@
   </div>
 </div>
 
-<!-- Loading -->
 <div id="loading" class="overlay">
   <div class="card">
     <div class="loader"></div>
@@ -486,87 +462,108 @@
   </div>
 </div>
 
-<!-- مكتبة قواعد الشطرنج (chess.js) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 
-<!-- ==================== APPLICATION ==================== -->
 <script>
 (function () {
   "use strict";
 
   /* ============================================================
-   *  1) إعداد وحدة Emscripten (chess.js + chess.wasm)
+   *  1) ربط WASM API (بدل UCI/stdin)
    * ============================================================ */
 
-  // طابور البايتات التي ستُغذّى للمحرك عبر stdin
-  var engineInput  = [];
-  var engineBest   = null;   // آخر bestmove
-  var engineInfoLn = "";     // آخر سطر info
+  var engineReady  = false;
+  var engineInfoLn = "";
+  var lastScore    = 0;
+  var lastDepth    = 0;
+  var lastNodes    = 0;
+  var lastTime     = 0;
 
   window.Module = {
-    // لا نُشغّل main() تلقائيًا — نحن من يناديه عند الحاجة
-    noInitialRun: true,
-
-    // ملف chess.wasm موجود بجانب index.html
     locateFile: function (path) { return path; },
-
-    // stdin: بايت بايت (Emscripten FS device)
-    stdin: function () {
-      return engineInput.length ? engineInput.shift() : null;
-    },
-
-    // stdout / stderr: سطر سطر
-    print:    function (line) { onEngineLine(line, false); },
-    printErr: function (line) { onEngineLine(line, true);  },
-
+    print:    function () {},
+    printErr: function () {},
     onRuntimeInitialized: function () {
       engineReady = true;
-      var el = document.getElementById('loading');
-      if (el) el.classList.add('hidden');
+
+      // تحقق من وجود الدوال الأساسية
+      var missing = [];
+      ["_engine_init", "_engine_set_fen", "_engine_search",
+       "_engine_move_to_uci"].forEach(function (fn) {
+        if (typeof Module[fn] !== "function") missing.push(fn);
+      });
+
+      if (missing.length) {
+        console.error("WASM API ناقص:", missing.join(", "));
+        var el = document.getElementById("loading");
+        if (el) {
+          el.querySelector("h2").textContent = "نسخة chess.js قديمة";
+          el.querySelector("p").textContent =
+            "الدوال الناقصة: " + missing.join(", ") + " — أعد البناء بأمر emcc الصحيح.";
+        }
+        return;
+      }
+
+      try { Module._engine_init(); }
+      catch (e) { console.error("engine_init:", e); }
+
+      var loadEl = document.getElementById("loading");
+      if (loadEl) loadEl.classList.add("hidden");
       newGame();
     }
   };
 
-  var engineReady = false;
-
-  function onEngineLine(line, isErr) {
-    var s = String(line).replace(/\r/g, "").trim();
-    if (!s) return;
-    if (s.indexOf("bestmove") === 0) {
-      var p = s.split(/\s+/);
-      engineBest = p[1] || null;
-    } else if (s.indexOf("info") === 0) {
-      if (s.indexOf("score") !== -1 || s.indexOf("depth") !== -1) {
-        engineInfoLn = s;
-      }
+  function stringToHeap(str) {
+    var len = (Module.lengthBytesUTF8 ? Module.lengthBytesUTF8(str) : str.length) + 1;
+    var ptr = Module._malloc(len);
+    if (Module.stringToUTF8) {
+      Module.stringToUTF8(str, ptr, len);
+    } else {
+      var bytes = new TextEncoder().encode(str + "\0");
+      Module.HEAPU8.set(bytes, ptr);
     }
+    return ptr;
+  }
+
+  function intToUci(m) {
+    if (!m || typeof Module._engine_move_to_uci !== "function") return null;
+    var ptr = Module._engine_move_to_uci(m);
+    if (!ptr) return null;
+    return Module.UTF8ToString(ptr);
   }
 
   /**
-   * يُغذّي المحرك بالأوامر ثم ينادي main() بشكل متزامن.
-   * عند وصول stdin إلى EOF يعود main وينتهي — وهذا مقصود:
-   * نستدعيه من جديد لكل نقلة (كل استدعاء يبدأ من جديد مع position كامل).
+   * يشغّل المحرك على الوضعية الحالية ويعيد النقلة بصيغة UCI.
    */
-  function runEngine(commands) {
-    if (!engineReady || typeof Module._main !== "function") return null;
+  function runEngine() {
+    if (!engineReady) return null;
+    if (typeof Module._engine_search !== "function") return null;
 
-    engineBest = null;
-    engineInput.length = 0;
-    for (var i = 0; i < commands.length; i++) {
-      var str = commands[i] + "\n";
-      for (var j = 0; j < str.length; j++) engineInput.push(str.charCodeAt(j) & 0xff);
-    }
+    // 1) ادفع الوضعية الحالية
+    var fen = game.fen();
+    var fenPtr = stringToHeap(fen);
+    Module._engine_set_fen(fenPtr);
+    Module._free(fenPtr);
 
-    try {
-      Module._main(0, 0);
-    } catch (e) {
-      // ExitStatus / unwind حالة طبيعية عند EOF
-      var nm = e && e.name;
-      if (nm !== "ExitStatus" && e !== "unwind") {
-        console.error("[engine]", e);
-      }
-    }
-    return engineBest;
+    // 2) ابحث
+    var t0 = performance.now();
+    var move = Module._engine_search(depth, 3000);
+    lastTime = Math.round(performance.now() - t0);
+
+    lastScore = (typeof Module._engine_get_score === "function")
+                  ? Module._engine_get_score() : 0;
+    lastDepth = (typeof Module._engine_get_depth === "function")
+                  ? Module._engine_get_depth() : depth;
+    lastNodes = (typeof Module._engine_get_nodes === "function")
+                  ? Module._engine_get_nodes() : 0;
+
+    // 3) حدّث سطر المعلومات
+    engineInfoLn = "info depth " + lastDepth +
+                   " score cp " + lastScore +
+                   " nodes " + Math.round(lastNodes) +
+                   " time " + lastTime + "ms";
+
+    return intToUci(move);
   }
 
   /* ============================================================
@@ -582,8 +579,8 @@
   var orientation = "w";
   var depth       = 3;
 
-  var selected     = null;   // المربع المحدد
-  var legalTargets = new Map(); // square -> move
+  var selected     = null;
+  var legalTargets = new Map();
   var lastMove     = null;
   var thinking     = false;
   var isOver       = false;
@@ -607,7 +604,7 @@
    * ============================================================ */
 
   function render() {
-    var bd = game.board(); // bd[0] = الصف 8
+    var bd = game.board();
     var order = [];
     for (var r = 0; r < 8; r++) for (var f = 0; f < 8; f++) order.push([r, f]);
     if (orientation === "b") order.reverse();
@@ -656,7 +653,6 @@
         div.appendChild(p);
       }
 
-      // الإحداثيات
       if (vr === 7) {
         var cf = document.createElement("span");
         cf.className = "coord file";
@@ -687,7 +683,6 @@
   }
 
   function updateUI() {
-    // شريط الحالة
     if (!engineReady) {
       setStatus("جارٍ تحميل المحرك…", "think");
     } else if (isOver) {
@@ -701,9 +696,14 @@
     }
 
     // معلومات المحرك
-    infoEl.textContent = engineInfoLn ? engineInfoLn : "engine: idle";
+    if (engineInfoLn) {
+      infoEl.textContent = engineInfoLn;
+    } else if (engineReady) {
+      infoEl.textContent = "engine: ready (depth=" + depth + ")";
+    } else {
+      infoEl.textContent = "engine: loading…";
+    }
 
-    // أسماء اللاعبين حسب الاتجاه
     var topColor = orientation === "w" ? "b" : "w";
     var botColor = orientation === "w" ? "w" : "b";
 
@@ -717,7 +717,6 @@
     nameTop.textContent = (topColor === humanColor ? "أنت" : "الحاسوب") + (topColor === "w" ? " (أبيض)" : " (أسود)");
     nameBot.textContent = (botColor === humanColor ? "أنت" : "الحاسوب") + (botColor === "w" ? " (أبيض)" : " (أسود)");
 
-    // المواد
     var mat = { w: 0, b: 0 };
     var board = game.board();
     for (var r = 0; r < 8; r++) {
@@ -727,12 +726,9 @@
       }
     }
     var diff = mat.w - mat.b;
-    document.getElementById("matTop").textContent =
-      diffFor(topColor, diff);
-    document.getElementById("matBot").textContent =
-      diffFor(botColor, diff);
+    document.getElementById("matTop").textContent = diffFor(topColor, diff);
+    document.getElementById("matBot").textContent = diffFor(botColor, diff);
 
-    // قائمة النقلات
     renderMoves();
   }
 
@@ -836,7 +832,7 @@
   }
 
   /* ============================================================
-   *  8) التفاعل (نقر + سحب)
+   *  8) التفاعل
    * ============================================================ */
 
   boardEl.addEventListener("pointerdown", function (e) {
@@ -847,7 +843,6 @@
     if (!sqEl) return;
     var square = sqEl.dataset.square;
 
-    // إتمام نقلة بالنقر على الهدف
     if (selected && legalTargets.has(square)) {
       makeHumanMove(selected, square);
       return;
@@ -927,7 +922,6 @@
     if (target && target !== from && legalTargets.has(target)) {
       makeHumanMove(from, target);
     } else {
-      // إبقاء التحديد
       render();
     }
   });
@@ -935,13 +929,13 @@
   document.addEventListener("pointercancel", function () { endDrag(); render(); });
 
   /* ============================================================
-   *  9) محرك الحاسوب
+   *  9) محرك الحاسوب (WASM API)
    * ============================================================ */
 
   function scheduleEngineMove() {
     thinking = true;
+    thinkEl.classList.remove("hidden");
     updateUI();
-    // نمنح المتصفح فرصة لإعادة الرسم قبل أن نحجز الخيط الرئيسي
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
         setTimeout(doEngineMove, 20);
@@ -950,35 +944,27 @@
   }
 
   function doEngineMove() {
-    if (!engineReady) { thinking = false; updateUI(); return; }
+    if (!engineReady) {
+      thinking = false;
+      thinkEl.classList.add("hidden");
+      updateUI();
+      return;
+    }
 
-    var hist = game.history({ verbose: true });
-    var moves = hist.map(function (m) {
-      return m.from + m.to + (m.promotion ? m.promotion : "");
-    });
-
-    var cmds = [
-      "uci",
-      "isready",
-      "ucinewgame",
-      "isready",
-      "position startpos" + (moves.length ? " moves " + moves.join(" ") : ""),
-      "go depth " + depth
-    ];
-
-    var best = runEngine(cmds);
+    var uci = runEngine();
     thinking = false;
+    thinkEl.classList.add("hidden");
 
-    if (!best || best === "0000" || best === "(none)") {
-      console.warn("[engine] لم يصل bestmove. آخر مخرجات:", engineInfoLn);
+    if (!uci || uci.length < 4) {
+      console.warn("[engine] no move returned", engineInfoLn);
       updateUI();
       checkGameEnd();
       return;
     }
 
-    var from  = best.slice(0, 2);
-    var to    = best.slice(2, 4);
-    var promo = best.length > 4 ? best[4] : null;
+    var from  = uci.slice(0, 2);
+    var to    = uci.slice(2, 4);
+    var promo = uci.length > 4 ? uci[4] : null;
 
     var obj = { from: from, to: to };
     if (promo) obj.promotion = promo;
@@ -1030,7 +1016,9 @@
     isOver = false;
     thinking = false;
     engineInfoLn = "";
+    lastScore = lastDepth = lastNodes = lastTime = 0;
     endDrag();
+    thinkEl.classList.add("hidden");
     render();
     updateUI();
 
@@ -1069,7 +1057,6 @@
     var pct = ((depth - 1) / 8) * 100;
     this.style.setProperty("--p", pct + "%");
   });
-  // تهيئة أولية للشريط
   depthEl.dispatchEvent(new Event("input"));
 
   /* ============================================================
@@ -1079,7 +1066,6 @@
   render();
   updateUI();
 
-  // إن فشل تحميل المحرك (مثلاً فتح الملف عبر file://) نُظهر رسالة
   setTimeout(function () {
     if (!engineReady) {
       var el = document.getElementById("loading");
@@ -1094,8 +1080,6 @@
 })();
 </script>
 
-<!-- ==================== EMSCRIPTEN GLUE (chess.js) ==================== -->
-<!-- يجب أن يُحمَّل أخيرًا حتى يرى window.Module المُعدّ أعلاه -->
 <script src="chess.js"></script>
 
 </body>
