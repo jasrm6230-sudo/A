@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Chess</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,sans-serif;background:#1a1a2e;color:#eee;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:10px;user-select:none}
+h1{font-size:1.1em;margin:5px 0}
+#status{min-height:1.5em;color:#ffd166;margin:4px 0;text-align:center}
+#board{display:grid;grid-template-columns:repeat(8,1fr);width:min(96vw,480px);aspect-ratio:1;border:3px solid #333;border-radius:6px;overflow:hidden}
+.sq{position:relative;display:flex;align-items:center;justify-content:center;font-size:min(11vw,52px);line-height:1;cursor:pointer}
+.light{background:#f0d9b5}
+.dark{background:#b58863}
+.piece-white{color:#fff;text-shadow:0 0 2px #000,1px 1px 0 #000}
+.piece-black{color:#111;text-shadow:0 0 2px #aaa}
+.sq.sel{box-shadow:inset 0 0 0 4px #f6c915}
+.sq.hint::after{content:"";position:absolute;width:28%;height:28%;border-radius:50%;background:rgba(20,120,20,.55)}
+.sq.hint-cap::after{content:"";position:absolute;width:88%;height:88%;border-radius:50%;border:4px solid rgba(200,30,30,.65)}
+.sq.last{box-shadow:inset 0 0 0 4px rgba(255,220,80,.45)}
+.sq.check{background:#e74c3c!important}
+#controls{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;justify-content:center}
+button,select{background:#16213e;color:#eee;border:1px solid #444;border-radius:6px;padding:8px 14px;font-size:.95em}
+#info{font-size:.8em;color:#888;margin-top:8px}
+</style>
+</head>
+<body>
+<h1>Chess vs Computer</h1>
+<div id="status">...</div>
+<div id="board"></div>
+<div id="controls">
+<select id="level">
+<option value="1">Level 1</option>
+<option value="3">Level 3</option>
+<option value="5" selected>Level 5</option>
+<option value="7">Level 7</option>
+<option value="9">Level 9</option>
+</select>
+<button id="new">New</button>
+<button id="undo">Undo</button>
+<button id="flip">Flip</button>
+</div>
+<div id="info"></div>
+<script src="engine.js"></script>
+<script>
+(async function(){
+const Module = await createEngine();
+const UNI={P:'\u2659',N:'\u2658',B:'\u2657',R:'\u2656',Q:'\u2655',K:'\u2654',p:'\u265F',n:'\u265E',b:'\u265D',r:'\u265C',q:'\u265B',k:'\u265A'};
+const START='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+const boardEl=document.getElementById('board');
+const statusEl=document.getElementById('status');
+const infoEl=document.getElementById('info');
+const levelEl=document.getElementById('level');
+let flipped=false,selSq=-1,legalFromSel=[],lastMove=null,busy=false,gameOver=false;
+function fenToGrid(fen){
+  const g=new Array(64).fill(null);
+  const rows=fen.split(' ')[0].split('/');
+  for(let r=0;r<8;r++){let f=0;
+    for(const c of rows[7-r]){
+      if(c>='1'&&c<='8')f+=+c; else {g[r*8+f]=c;f++;}
+    }}
+  return g;
+}
+function buildBoard(){
+  boardEl.innerHTML='';
+  for(let vr=0;vr<8;vr++)for(let vf=0;vf<8;vf++){
+    let r,f;
+    if(flipped){r=vr;f=7-vf;} else {r=7-vr;f=vf;}
+    const sq=r*8+f;
+    const el=document.createElement('div');
+    el.className='sq '+((f+r)%2===1?'light':'dark');
+    el.dataset.sq=sq;
+    el.addEventListener('click',()=>onClick(sq));
+    boardEl.appendChild(el);
+  }
+  render();
+}
+function render(){
+  const fen=Module.UTF8ToString(Module._engine_get_fen());
+  const grid=fenToGrid(fen);
+  const side=Module._engine_get_side();
+  const inChk=Module._engine_in_check();
+  const st=Module._engine_game_status();
+  let kingSq=-1;
+  if(inChk)for(let s=0;s<64;s++){const p=grid[s];
+    if((side===0&&p==='K')||(side===1&&p==='k')){kingSq=s;break;}}
+  const dests=new Set();
+  for(const m of legalFromSel) dests.add(Module._engine_move_to(m));
+  for(let i=0;i<64;i++){
+    const el=boardEl.children[i],sq=+el.dataset.sq,p=grid[sq];
+    el.classList.remove('sel','hint','hint-cap','last','check');
+    if(dests.has(sq)) el.classList.add(p?'hint-cap':'hint');
+    if(sq===selSq) el.classList.add('sel');
+    if(lastMove&&(sq===lastMove.from||sq===lastMove.to)) el.classList.add('last');
+    if(sq===kingSq) el.classList.add('check');
+    if(p){
+      const isW=p===p.toUpperCase();
+      el.innerHTML='<span class="'+(isW?'piece-white':'piece-black')+'">'+UNI[p]+'</span>';
+    } else el.innerHTML='';
+  }
+  if(st===1){statusEl.textContent=(side===0?'Checkmate! Black wins':'Checkmate! White wins');gameOver=true;}
+  else if(st===2){statusEl.textContent='Draw (stalemate)';gameOver=true;}
+  else if(st===3){statusEl.textContent='Draw (50-move)';gameOver=true;}
+  else if(st===4){statusEl.textContent='Draw (repetition)';gameOver=true;}
+  else if(inChk){statusEl.textContent='CHECK!';gameOver=false;}
+  else{statusEl.textContent=(side===0?'Your turn (White)':'Computer thinking...');gameOver=false;}
+}
+function clearSel(){selSq=-1;legalFromSel=[];}
+function onClick(sq){
+  if(busy||gameOver)return;
+  if(Module._engine_get_side()!==0)return;
+  if(selSq>=0){
+    for(const m of legalFromSel)
+      if(Module._engine_move_to(m)===sq){playMove(m);return;}
+  }
+  const fen=Module.UTF8ToString(Module._engine_get_fen());
+  const grid=fenToGrid(fen);
+  const p=grid[sq];
+  if(!p||p!==p.toUpperCase()){clearSel();render();return;}
+  const n=Module._engine_gen_legal();
+  const arr=[];
+  for(let i=0;i<n;i++){
+    const m=Module._engine_get_legal(i);
+    if(Module._engine_move_from(m)===sq)arr.push(m);
+  }
+  selSq=sq;legalFromSel=arr;render();
+}
+function playMove(m){
+  Module._engine_make(m);
+  lastMove={from:Module._engine_move_from(m),to:Module._engine_move_to(m)};
+  clearSel();render();
+  if(Module._engine_game_status()===0) setTimeout(aiMove,80);
+}
+function aiMove(){
+  if(gameOver)return;
+  busy=true;
+  statusEl.textContent='Computer thinking...';
+  setTimeout(()=>{
+    const d=+levelEl.value;
+    const t=Math.min(3000,d*400);
+    const m=Module._engine_search(d,t);
+    if(m===0){busy=false;render();return;}
+    Module._engine_make(m);
+    lastMove={from:Module._engine_move_from(m),to:Module._engine_move_to(m)};
+    infoEl.textContent='depth '+Module._engine_get_depth()+' | score '+Module._engine_get_score()+' | nodes '+Module._engine_get_nodes()+' | time '+Module._engine_get_time()+'ms';
+    busy=false;render();
+  },30);
+}
+function newGame(){
+  Module._engine_init();
+  Module._engine_set_silent(1);
+  Module._engine_set_fen(START);
+  clearSel();lastMove=null;busy=false;gameOver=false;
+  infoEl.textContent='';render();
+}
+document.getElementById('new').addEventListener('click',newGame);
+document.getElementById('undo').addEventListener('click',()=>{
+  if(busy)return;
+  Module._engine_unmake();
+  Module._engine_unmake();
+  clearSel();lastMove=null;gameOver=false;render();
+});
+document.getElementById('flip').addEventListener('click',()=>{flipped=!flipped;buildBoard();});
+Module._engine_init();
+Module._engine_set_silent(1);
+Module._engine_set_fen(START);
+buildBoard();
+})();
+</script>
+</body>
+</html>
+
