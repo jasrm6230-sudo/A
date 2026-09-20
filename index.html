@@ -765,23 +765,35 @@
     return 0;
   }
 
-  function loadWasmEngine(){
+    function loadWasmEngine(){
     setEngineStatus('⏳ جاري تحميل المحرك...');
     if (typeof createEngine !== 'function'){
-      setEngineStatus('✗ engine.js غير موجود — ستعمل بدون محرك', 'err');
+      setEngineStatus('✗ engine.js غير موجود', 'err');
       return;
     }
-    createEngine().then(function(mod){
-      engineModule = mod;
-      mod._engine_init();
-      mod._engine_set_silent(1);
-      engineReady = true;
-      setEngineStatus('✓ المحرك جاهز', 'ok');
-      maybeTriggerEngine();
-    }).catch(function(err){
-      console.error(err);
-      setEngineStatus('✗ فشل تحميل المحرك', 'err');
-    });
+    // 1) اجلب ملف WASM يدويًا
+    fetch('engine.wasm')
+      .then(function(resp){
+        if(!resp.ok) throw new Error('WASM fetch: HTTP ' + resp.status);
+        return resp.arrayBuffer();
+      })
+      .then(function(buf){
+        // 2) مرّر الملف الجاهز للمحرك عبر wasmBinary
+        return createEngine({ wasmBinary: buf });
+      })
+      .then(function(mod){
+        engineModule = mod;
+        mod._engine_init();
+        mod._engine_set_silent(1);
+        engineReady = true;
+        setEngineStatus('✓ المحرك جاهز', 'ok');
+        maybeTriggerEngine();
+      })
+      .catch(function(err){
+        console.error(err);
+        var msg = err && err.message ? err.message : String(err);
+        setEngineStatus('✗ ' + msg, 'err');
+      });
   }
 
   /* ================= اللوحة ================= */
