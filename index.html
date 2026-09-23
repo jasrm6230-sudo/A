@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>محرك شطرنج + كتاب Polyglot</title>
+<title>محرك شطرنج + Polyglot Book</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{--light:#f0d9b5;--dark:#b58863;--panel:#1e212c;--panel2:#262a38}
@@ -54,7 +54,8 @@
     background:#2c3142;color:#e9eaf0;padding:8px 10px;cursor:pointer;transition:.16s}
   select:hover,button:hover{background:#363c50}
   button.primary{background:linear-gradient(135deg,#2f9e79,#1f7a5c);border-color:#2f9e79;font-weight:700}
-  .moves{background:#15171f;border-radius:12px;padding:10px;height:180px;overflow-y:auto;
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .moves{background:#15171f;border-radius:12px;padding:10px;height:150px;overflow-y:auto;
     font-size:13px;border:1px solid rgba(255,255,255,.06);font-variant-numeric:tabular-nums}
   .moves .mv{display:grid;grid-template-columns:38px 1fr 1fr;gap:4px;padding:3px 4px;border-radius:6px}
   .moves .mv:nth-child(odd){background:rgba(255,255,255,.025)}
@@ -69,13 +70,17 @@
     align-items:center;justify-content:center;font-size:42px;cursor:pointer;transition:.15s;
     font-family:'Segoe UI Symbol',sans-serif}
   .promo .opts div:hover{background:#3d465e;transform:translateY(-3px)}
-  .book-status{font-size:11px;color:#f88;margin-top:4px}
+  .book-box{background:#15171f;border-radius:10px;padding:10px;border:1px solid rgba(255,255,255,.06);font-size:12px}
+  .book-status{font-size:11px;color:#f88;margin-top:6px;line-height:1.5}
   .book-status.ok{color:#8f8}
+  .book-status.loading{color:#8cf}
+  .book-progress{margin-top:6px;height:6px;background:#2c3142;border-radius:3px;overflow:hidden;display:none}
+  .book-progress.on{display:block}
+  .book-progress > div{height:100%;background:linear-gradient(90deg,#6cc6ff,#8ef0c8);width:0%;transition:width .15s}
 </style>
 </head>
 <body>
 
-<!-- تحميل ثوابت Polyglot (اختياري) -->
 <script src="polyglot-constants.js"></script>
 
 <div class="app">
@@ -116,25 +121,26 @@
       <button id="undoBtn" style="grid-column:span 2">↶ تراجع</button>
     </div>
 
-    <div class="controls" style="grid-column:span 2">
-      <div><label>الكتاب — عدد النقلات</label>
-        <select id="bookPliesSel">
+    <div class="book-box">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <label style="font-size:11px;color:#8b90a8">📖 الكتاب — عدد النقلات</label>
+        <select id="bookPliesSel" style="padding:4px 8px;font-size:12px">
           <option value="0">معطّل</option>
-          <option value="10">5 نقلات</option>
-          <option value="16">8 نقلات</option>
-          <option value="20" selected>10 نقلات</option>
-          <option value="24">12 نقلة</option>
-          <option value="30">15 نقلة</option>
-          <option value="999">كامل الكتاب</option>
+          <option value="10">5</option>
+          <option value="16">8</option>
+          <option value="20" selected>10</option>
+          <option value="24">12</option>
+          <option value="30">15</option>
+          <option value="999">كامل</option>
         </select>
       </div>
-      <div><label>&nbsp;</label>
-        <button id="bookFileBtn">📖 تحميل كتاب .bin</button>
-      </div>
-      <div style="grid-column:span 2" class="book-status" id="bookStatus">
-        لا يوجد كتاب محمّل
+      <div style="display:flex;gap:6px">
+        <button id="bookReloadBtn" style="flex:1;font-size:12px">🔄 أعد المحاولة</button>
+        <button id="bookFileBtn" style="flex:1;font-size:12px">📁 يدوي</button>
       </div>
       <input type="file" id="bookFile" accept=".bin" style="display:none">
+      <div class="book-progress" id="bookProgress"><div id="bookProgressBar"></div></div>
+      <div class="book-status" id="bookStatus">جاري البحث عن الكتاب...</div>
     </div>
 
     <div class="moves" id="moves"></div>
@@ -196,8 +202,36 @@ function computeHash(){
   hashLo=lo|0; hashHi=hi|0;
 }
 
-// ====== POLYGLOT HASH ======
-var PG_RANDOM = (global.POLYGLOT_RANDOM) || null;
+// ====== POLYGLOT HASH (Uint32Array مسطّح) ======
+var PG_RANDOM = null;
+
+function initPolyglotConstants(raw) {
+  if (!raw) { PG_RANDOM = null; return false; }
+  if (raw instanceof Uint32Array) {
+    PG_RANDOM = raw;
+  } else if (Array.isArray(raw)) {
+    if (raw.length > 0 && Array.isArray(raw[0])) {
+      // مصفوفة أزواج [hi, lo]
+      var flat = new Uint32Array(raw.length * 2);
+      for (var i = 0; i < raw.length; i++) {
+        flat[i*2]   = raw[i][0] >>> 0;
+        flat[i*2+1] = raw[i][1] >>> 0;
+      }
+      PG_RANDOM = flat;
+    } else {
+      // مصفوفة مسطّحة
+      PG_RANDOM = new Uint32Array(raw);
+    }
+  } else {
+    PG_RANDOM = null;
+  }
+  return !!(PG_RANDOM && PG_RANDOM.length >= 781 * 2);
+}
+
+// استقبال تلقائي من polyglot-constants.js
+if (typeof global.POLYGLOT_RANDOM !== 'undefined' && global.POLYGLOT_RANDOM) {
+  initPolyglotConstants(global.POLYGLOT_RANDOM);
+}
 
 function pgIsEpValid(){
   if (epSq === -1) return false;
@@ -214,6 +248,7 @@ function pgIsEpValid(){
 
 function polyglotHash(){
   if (!PG_RANDOM) return null;
+  var R = PG_RANDOM;
   var hi = 0, lo = 0;
   for (var i = 0; i < 64; i++) {
     var p = board[i];
@@ -222,22 +257,22 @@ function polyglotHash(){
     var pieceIdx = (type - 1) * 2 + (color === BLACK ? 0 : 1);
     var rank = i >> 3, f = i & 7;
     var sq = (7 - rank) * 8 + f;
-    var idx = pieceIdx * 64 + sq;
-    hi ^= PG_RANDOM[idx][0];
-    lo ^= PG_RANDOM[idx][1];
+    var idx = (pieceIdx * 64 + sq) * 2;
+    hi ^= R[idx];
+    lo ^= R[idx + 1];
   }
-  if (castling & 1) { hi ^= PG_RANDOM[768][0]; lo ^= PG_RANDOM[768][1]; }
-  if (castling & 2) { hi ^= PG_RANDOM[769][0]; lo ^= PG_RANDOM[769][1]; }
-  if (castling & 4) { hi ^= PG_RANDOM[770][0]; lo ^= PG_RANDOM[770][1]; }
-  if (castling & 8) { hi ^= PG_RANDOM[771][0]; lo ^= PG_RANDOM[771][1]; }
+  if (castling & 1) { hi ^= R[768*2];   lo ^= R[768*2+1]; }
+  if (castling & 2) { hi ^= R[769*2];   lo ^= R[769*2+1]; }
+  if (castling & 4) { hi ^= R[770*2];   lo ^= R[770*2+1]; }
+  if (castling & 8) { hi ^= R[771*2];   lo ^= R[771*2+1]; }
   if (pgIsEpValid()) {
     var epFile = epSq & 7;
-    hi ^= PG_RANDOM[772 + epFile][0];
-    lo ^= PG_RANDOM[772 + epFile][1];
+    hi ^= R[(772 + epFile) * 2];
+    lo ^= R[(772 + epFile) * 2 + 1];
   }
   if (side === BLACK) {
-    hi ^= PG_RANDOM[780][0];
-    lo ^= PG_RANDOM[780][1];
+    hi ^= R[780*2];
+    lo ^= R[780*2+1];
   }
   return (hi >>> 0) + ':' + (lo >>> 0);
 }
@@ -638,7 +673,6 @@ function mobilityRook(sq,us){
 }
 var KING_ATTACK_WEIGHT=[0,0,2,2,3,5,0];
 
-// Endgame helpers
 var EDGE_DIST=new Int8Array(64);
 var CORNER_DIST_LIGHT=new Int8Array(64);
 var CORNER_DIST_DARK=new Int8Array(64);
@@ -709,14 +743,14 @@ function evalKPK(sK,wK,pS,color){
 function endgameEval(){
   var wK=-1,bK=-1,wQ=0,bQ=0,wR=0,bR=0,wB=0,bB=0,wN=0,bN=0,wP=0,bP=0;
   var wBSq=-1,bBSq=-1,wNSq=-1,bNSq=-1,wQSq=-1,bQSq=-1,wRSq=-1,bRSq=-1;
-  var wPLight=0,wPDark=0,bPLight=0,bPDark=0,wSingleP=-1,bSingleP=-1,minorCount=0;
+  var wSingleP=-1,bSingleP=-1,minorCount=0;
   for(var s=0;s<64;s++){
     var p=board[s]; if(!p)continue;
     var t=p&7,c=p>>3;
     if(t===KING){if(c===0)wK=s;else bK=s;continue}
     if(t===PAWN){
-      if(c===0){wP++;wSingleP=s;if(sqColor(s)===0)wPLight++;else wPDark++}
-      else{bP++;bSingleP=s;if(sqColor(s)===0)bPLight++;else bPDark++}
+      if(c===0){wP++;wSingleP=s}
+      else{bP++;bSingleP=s}
       continue;
     }
     minorCount++;
@@ -926,7 +960,6 @@ function pawnShield(kSq,pawnCnt,pawnMinMax,color){
   return s;
 }
 
-// SEE
 var SEE_VAL=[0,100,320,330,500,900,20000];
 var _seeSeq=new Int32Array(32);
 function seeFindLVA(sq,color,remLo,remHi){
@@ -994,7 +1027,6 @@ function see(move){
 }
 function seeGE(move,threshold){return see(move)>=threshold}
 
-// SEARCH
 var TT_BITS=21,TT_SIZE=1<<TT_BITS,TT_MASK=TT_SIZE-1;
 var ttKey=new Int32Array(TT_SIZE),ttLock=new Int32Array(TT_SIZE);
 var ttDepth=new Int8Array(TT_SIZE).fill(-1);
@@ -1372,7 +1404,8 @@ global.Engine={
   mFrom:mFrom,mTo:mTo,mPromo:mPromo,mFlag:mFlag,
   idxToAlg:idxToAlg,
   polyglotHash:polyglotHash,
-  setPolyglotConstants:function(c){PG_RANDOM=c},
+  setPolyglotConstants:initPolyglotConstants,
+  isPolyglotReady:function(){return !!(PG_RANDOM && PG_RANDOM.length >= 781*2)},
   START_FEN:'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 };
 })(self);
@@ -1383,131 +1416,70 @@ global.Engine={
 (function(){
 'use strict';
 
+/* ═══════════════════════════════════════════════════════════════
+   🔧 الإعدادات — عدّل هذه المتغيرات
+   ═══════════════════════════════════════════════════════════════ */
+var BOOK_FILE       = 'GG.bin';     // ← اسم ملف الكتاب الفعلي
+var BOOK_FALLBACKS  = ['book.bin', 'gm2001.bin', 'books/book.bin']; // احتياط
+var DEFAULT_BOOK_PLIES = 20;        // 10 نقلات
+
+/* ═══════════════════════════════════════════════════════════════ */
+
 var engineSrc = document.getElementById('engine-src').textContent;
-var polyglotConstants = (window.POLYGLOT_RANDOM) || null;
 
-// أدخل الثوابت في بداية كود المحرك
-var constantsPreamble = polyglotConstants
-  ? 'self.POLYGLOT_RANDOM=' + JSON.stringify(polyglotConstants) + ';\n'
-  : 'self.POLYGLOT_RANDOM=null;\n';
-
-var fullEngineSrc = constantsPreamble + engineSrc;
-
-// حقن inline لتشغيل Engine في الصفحة أيضاً (للـ fallback بدون worker)
+// تشغيل Engine في الصفحة الرئيسية (احتياط بدون Worker)
 var inline = document.createElement('script');
-inline.textContent = fullEngineSrc;
+inline.textContent = engineSrc;
 document.body.appendChild(inline);
 var E = window.Engine;
 
-// بناء Worker
-var blobURL = URL.createObjectURL(new Blob([fullEngineSrc], {type:'application/javascript'}));
+/* ===== عناصر الواجهة ===== */
+var boardEl       = document.getElementById('board');
+var squaresEl     = document.getElementById('squares');
+var piecesEl      = document.getElementById('pieces');
+var movesEl       = document.getElementById('moves');
+var turnDot       = document.getElementById('turnDot');
+var turnTxt       = document.getElementById('turnTxt');
+var evalTxt       = document.getElementById('evalTxt');
+var depthTxt      = document.getElementById('depthTxt');
+var stateTxt      = document.getElementById('stateTxt');
+var depthSel      = document.getElementById('depthSel');
+var timeSel       = document.getElementById('timeSel');
+var sideSel       = document.getElementById('sideSel');
+var promoEl       = document.getElementById('promo');
+var promoOpts     = document.getElementById('promoOpts');
+var bookFileEl    = document.getElementById('bookFile');
+var bookFileBtn   = document.getElementById('bookFileBtn');
+var bookReloadBtn = document.getElementById('bookReloadBtn');
+var bookStatusEl  = document.getElementById('bookStatus');
+var bookPliesSel  = document.getElementById('bookPliesSel');
+var bookProgressEl= document.getElementById('bookProgress');
+var bookProgressBar=document.getElementById('bookProgressBar');
 
-var workerSrc =
-  'importScripts(' + JSON.stringify(blobURL) + ');\n' +
-  'var currentId = 0;\n' +
-  'var book = null;\n' +
-  'var bookMaxPlies = 20;\n' +
-  'self.Engine.onSearchInfo = function(info){\n' +
-  '  self.postMessage({type:"info", id:currentId, depth:info.depth, score:info.score, nodes:info.nodes});\n' +
-  '};\n' +
-  'function parseBin(buffer){\n' +
-  '  var view = new DataView(buffer);\n' +
-  '  var map = new Map();\n' +
-  '  for (var i = 0; i + 16 <= buffer.byteLength; i += 16) {\n' +
-  '    var keyHi = view.getUint32(i, false);\n' +
-  '    var keyLo = view.getUint32(i + 4, false);\n' +
-  '    var mv = view.getUint16(i + 8, false);\n' +
-  '    var w  = view.getUint16(i + 10, false);\n' +
-  '    var key = (keyHi>>>0) + ":" + (keyLo>>>0);\n' +
-  '    var arr = map.get(key);\n' +
-  '    if (!arr) { arr = []; map.set(key, arr); }\n' +
-  '    arr.push({mv:mv, w:w});\n' +
-  '  }\n' +
-  '  return map;\n' +
-  '}\n' +
-  'function pickBookMove(){\n' +
-  '  if (!book) return null;\n' +
-  '  var key = self.Engine.polyglotHash();\n' +
-  '  if (!key) return null;\n' +
-  '  var entries = book.get(key);\n' +
-  '  if (!entries || !entries.length) return null;\n' +
-  '  var total = 0;\n' +
-  '  for (var j = 0; j < entries.length; j++) total += entries[j].w;\n' +
-  '  var r = Math.random() * total;\n' +
-  '  var chosen = entries[entries.length-1].mv;\n' +
-  '  for (var k = 0; k < entries.length; k++) {\n' +
-  '    r -= entries[k].w;\n' +
-  '    if (r <= 0) { chosen = entries[k].mv; break; }\n' +
-  '  }\n' +
-  '  var to = chosen & 63;\n' +
-  '  var from = (chosen >> 6) & 63;\n' +
-  '  var promo = (chosen >> 12) & 7;\n' +
-  '  var promoMap = [0, self.Engine.KNIGHT, self.Engine.BISHOP, self.Engine.ROOK, self.Engine.QUEEN];\n' +
-  '  var fromE = (7 - (from >> 3)) * 8 + (from & 7);\n' +
-  '  var toE   = (7 - (to   >> 3)) * 8 + (to   & 7);\n' +
-  '  var p = promoMap[promo] || 0;\n' +
-  '  var m = (fromE | (toE << 6) | (p << 12)) | 0;\n' +
-  '  var legal = self.Engine.legalMoves();\n' +
-  '  for (var l = 0; l < legal.length; l++) {\n' +
-  '    if (legal[l] === m) return m;\n' +
-  '    if (promo && (legal[l] & 0xFFF) === (m & 0xFFF)) return legal[l];\n' +
-  '  }\n' +
-  '  return null;\n' +
-  '}\n' +
-  'self.onmessage = function(e){\n' +
-  '  var d = e.data;\n' +
-  '  if (d.cmd === "loadBook") {\n' +
-  '    try { book = parseBin(d.buffer); } catch(err) { book = null; }\n' +
-  '    self.postMessage({type:"bookLoaded", count: book ? book.size : 0});\n' +
-  '  } else if (d.cmd === "setBookPlies") {\n' +
-  '    bookMaxPlies = d.value | 0;\n' +
-  '  } else if (d.cmd === "search") {\n' +
-  '    currentId = d.id;\n' +
-  '    self.Engine.setFen(d.fen, { prevHashes: d.prevHashes, newGame: d.newGame });\n' +
-  '    if (d.plyCount < bookMaxPlies) {\n' +
-  '      var bm = pickBookMove();\n' +
-  '      if (bm) {\n' +
-  '        self.postMessage({type:"bestmove", id:d.id, move:bm, score:0, depth:0, nodes:0, time:0, fromBook:true});\n' +
-  '        return;\n' +
-  '      }\n' +
-  '    }\n' +
-  '    var r = self.Engine.search(d.depth, d.timeLimit);\n' +
-  '    self.postMessage({type:"bestmove", id:d.id, move:r.move, score:r.score, depth:r.depth, nodes:r.nodes, time:r.time});\n' +
-  '  } else if (d.cmd === "stop") {\n' +
-  '    self.Engine.stopSearch();\n' +
-  '  }\n' +
-  '};';
-
-var wURL = URL.createObjectURL(new Blob([workerSrc], {type:'application/javascript'}));
-var worker = null;
-function makeWorker(){try{return new Worker(wURL)}catch(e){return null}}
-worker = makeWorker();
-
-var boardEl=document.getElementById('board');
-var squaresEl=document.getElementById('squares');
-var piecesEl=document.getElementById('pieces');
-var movesEl=document.getElementById('moves');
-var turnDot=document.getElementById('turnDot');
-var turnTxt=document.getElementById('turnTxt');
-var evalTxt=document.getElementById('evalTxt');
-var depthTxt=document.getElementById('depthTxt');
-var stateTxt=document.getElementById('stateTxt');
-var depthSel=document.getElementById('depthSel');
-var timeSel=document.getElementById('timeSel');
-var sideSel=document.getElementById('sideSel');
-var promoEl=document.getElementById('promo');
-var promoOpts=document.getElementById('promoOpts');
-var bookFileEl=document.getElementById('bookFile');
-var bookFileBtn=document.getElementById('bookFileBtn');
-var bookStatusEl=document.getElementById('bookStatus');
-var bookPliesSel=document.getElementById('bookPliesSel');
-
-var flipped=false,humanColor=E.WHITE,selected=-1,legalFromSelected=[];
-var lastMove=null,thinking=false,gameOver=false,pliesPlayed=0;
-var searchId=0,sanList=[],lastMoveHistory=[],pendingPromo=null;
-var squareEls=new Array(64),pieceEls=new Array(64);
+/* ===== الحالة ===== */
+var flipped=false, humanColor=E.WHITE, selected=-1, legalFromSelected=[];
+var lastMove=null, thinking=false, gameOver=false, pliesPlayed=0;
+var searchId=0, sanList=[], lastMoveHistory=[], pendingPromo=null;
+var squareEls=new Array(64), pieceEls=new Array(64);
 var GLYPH={1:'\u265F',2:'\u265E',3:'\u265D',4:'\u265C',5:'\u265B',6:'\u265A'};
+var worker = null;
 
+/* ═══════════════════════════════════════════════════════════════
+   دوال الحالة
+   ═══════════════════════════════════════════════════════════════ */
+function setBookStatus(text, cls){
+  bookStatusEl.textContent = text;
+  bookStatusEl.className = 'book-status' + (cls ? ' ' + cls : '');
+}
+function showProgress(on){
+  bookProgressEl.classList.toggle('on', !!on);
+  if(!on) bookProgressBar.style.width = '0%';
+}
+function setProgress(pct){ bookProgressBar.style.width = Math.min(100, Math.max(0, pct)) + '%'; }
+
+/* ═══════════════════════════════════════════════════════════════
+   دوال اللوحة
+   ═══════════════════════════════════════════════════════════════ */
 function buildBoard(){
   squaresEl.innerHTML='';
   for(var i=0;i<64;i++){
@@ -1592,6 +1564,10 @@ function updateEvalFromSearch(score,sideAtSearch){
   var v=whiteScore/100;
   evalTxt.textContent=(v>0?'+':'')+v.toFixed(2);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   منطق النقلات
+   ═══════════════════════════════════════════════════════════════ */
 function applyMove(m,recordSan){
   var san=recordSan?E.moveToSan(m):null;
   E.makeMove(m);
@@ -1651,13 +1627,15 @@ function attachWorkerHandlers(w){
     var d=e.data;
     if(d.type==='info'){if(d.id!==searchId)return;depthTxt.textContent=d.depth+' / '+(d.nodes||0).toLocaleString('en-US');}
     else if(d.type==='bookLoaded'){
+      showProgress(false);
       if(d.count>0){
-        bookStatusEl.textContent='✓ '+d.count.toLocaleString('en-US')+' موقف';
-        bookStatusEl.classList.add('ok');
+        setBookStatus('✓ كتاب جاهز — '+d.count.toLocaleString('en-US')+' موقف', 'ok');
       } else {
-        bookStatusEl.textContent='فشل تحميل الكتاب';
-        bookStatusEl.classList.remove('ok');
+        setBookStatus('فشل تحميل الكتاب', '');
       }
+    }
+    else if(d.type==='polyglotReady'){
+      // الثوابت استُقبلت في الـ Worker
     }
     else if(d.type==='bestmove'){d.side=w._sideAtSearch;onEngineResult(d);}
   };
@@ -1667,8 +1645,10 @@ function attachWorkerHandlers(w){
     stateTxt.textContent='خطأ — جرّب لعبة جديدة';updateStatus();
   };
 }
-if(worker)attachWorkerHandlers(worker);
 
+/* ═══════════════════════════════════════════════════════════════
+   تفاعل اللوحة
+   ═══════════════════════════════════════════════════════════════ */
 function squareFromPoint(cx,cy){
   var rect=boardEl.getBoundingClientRect();
   var cw=rect.width/8,ch=rect.height/8;
@@ -1741,6 +1721,9 @@ boardEl.addEventListener('click',function(ev){
   if(selected>=0&&selected!==sq){tryMoveTo(sq);}
 });
 
+/* ═══════════════════════════════════════════════════════════════
+   أزرار
+   ═══════════════════════════════════════════════════════════════ */
 function newGame(){
   searchId++;
   if(worker){try{worker.postMessage({cmd:'stop'})}catch(e){}}
@@ -1777,36 +1760,266 @@ document.getElementById('newBtn').addEventListener('click',newGame);
 document.getElementById('undoBtn').addEventListener('click',undoMove);
 sideSel.addEventListener('change',newGame);
 
+/* ═══════════════════════════════════════════════════════════════
+   تحميل الكتاب
+   ═══════════════════════════════════════════════════════════════ */
+function sendBookToWorker(buffer){
+  if(!worker){ setBookStatus('لا يوجد Worker',''); return; }
+  try{ worker.postMessage({cmd:'loadBook',buffer:buffer},[buffer]); }
+  catch(e){ worker.postMessage({cmd:'loadBook',buffer:buffer}); }
+}
+
+function fetchWithProgress(url){
+  return fetch(url,{cache:'no-cache'}).then(function(resp){
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    var total = parseInt(resp.headers.get('content-length')||'0',10);
+    var reader = resp.body && resp.body.getReader ? resp.body.getReader() : null;
+    if(!reader){
+      return resp.arrayBuffer();
+    }
+    var chunks=[], received=0;
+    function step(){
+      return reader.read().then(function(r){
+        if(r.done){
+          var out=new Uint8Array(received), off=0;
+          for(var i=0;i<chunks.length;i++){ out.set(chunks[i],off); off+=chunks[i].length; }
+          return out.buffer;
+        }
+        chunks.push(r.value);
+        received += r.value.length;
+        if(total>0){
+          setProgress((received/total)*100);
+          var mb=(received/1048576).toFixed(2);
+          var tmb=(total/1048576).toFixed(2);
+          setBookStatus('تحميل '+mb+' / '+tmb+' MB','loading');
+        } else {
+          setBookStatus('تحميل '+(received/1048576).toFixed(2)+' MB','loading');
+        }
+        return step();
+      });
+    }
+    return step();
+  });
+}
+
+function autoDetectBook(){
+  var candidates = [BOOK_FILE].concat(BOOK_FALLBACKS);
+  showProgress(true); setProgress(0);
+  var i = 0;
+  function next(){
+    if(i >= candidates.length){
+      showProgress(false);
+      setBookStatus('لم يُعثر على الكتاب — استخدم "📁 يدوي"','');
+      return Promise.resolve(false);
+    }
+    var url = candidates[i++];
+    setBookStatus('جاري تجربة: '+url,'loading');
+    return fetchWithProgress(url).then(function(buf){
+      sendBookToWorker(buf);
+      return true;
+    }).catch(function(err){
+      console.warn('[Book] فشل',url,'-',err.message);
+      return next();
+    });
+  }
+  return next();
+}
+
 bookFileBtn.addEventListener('click',function(){bookFileEl.click()});
 bookFileEl.addEventListener('change',async function(ev){
   var file=ev.target.files[0];
   if(!file)return;
-  bookStatusEl.textContent='جاري التحميل...';
-  bookStatusEl.classList.remove('ok');
+  setBookStatus('جاري التحميل: '+file.name,'loading');
+  showProgress(true); setProgress(0);
   try{
-    var buf=await file.arrayBuffer();
-    if(worker)worker.postMessage({cmd:'loadBook',buffer:buf},[buf]);
-    else bookStatusEl.textContent='لا يوجد Worker';
+    var reader=new FileReader();
+    var buf=await new Promise(function(resolve,reject){
+      reader.onload=function(){resolve(reader.result)};
+      reader.onerror=function(){reject(reader.error)};
+      reader.onprogress=function(e){
+        if(e.lengthComputable){
+          setProgress((e.loaded/e.total)*100);
+          var mb=(e.loaded/1048576).toFixed(2);
+          var tmb=(e.total/1048576).toFixed(2);
+          setBookStatus('تحميل '+mb+' / '+tmb+' MB','loading');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+    sendBookToWorker(buf);
   }catch(err){
-    bookStatusEl.textContent='خطأ: '+err.message;
+    showProgress(false);
+    setBookStatus('خطأ: '+err.message,'');
   }
 });
+
+bookReloadBtn.addEventListener('click',function(){
+  autoDetectBook();
+});
+
 bookPliesSel.addEventListener('change',function(){
   var v=parseInt(this.value,10)||0;
   if(worker)worker.postMessage({cmd:'setBookPlies',value:v});
 });
 
-// حالة الثوابت
-if(!polyglotConstants){
-  bookStatusEl.textContent='⚠ لم يتم تحميل polyglot-constants.js — الكتاب معطّل';
-} else {
-  bookStatusEl.textContent='ثوابت Polyglot جاهزة — حمّل كتاباً';
+/* ═══════════════════════════════════════════════════════════════
+   تهيئة المحرك — انتظار ثوابت Polyglot ثم بناء الـ Worker
+   ═══════════════════════════════════════════════════════════════ */
+function waitForPolyglot(){
+  return new Promise(function(resolve){
+    // 1) جاهزة فوراً؟
+    if(window.POLYGLOT_RANDOM && window.POLYGLOT_RANDOM.length >= 1562){
+      return resolve(window.POLYGLOT_RANDOM);
+    }
+    // 2) في انتظار Promise؟
+    if(window.POLYGLOT_RANDOM_PROMISE){
+      return window.POLYGLOT_RANDOM_PROMISE.then(resolve).catch(function(){ resolve(null); });
+    }
+    // 3) لا يوجد polyglot-constants.js
+    resolve(null);
+  });
 }
 
+function buildWorker(){
+  var blobURL = URL.createObjectURL(new Blob([engineSrc], {type:'application/javascript'}));
+
+  var workerSrc =
+    'importScripts(' + JSON.stringify(blobURL) + ');\n' +
+    'var currentId = 0;\n' +
+    'var book = null;\n' +
+    'var bookMaxPlies = ' + DEFAULT_BOOK_PLIES + ';\n' +
+    'self.Engine.onSearchInfo = function(info){\n' +
+    '  self.postMessage({type:"info", id:currentId, depth:info.depth, score:info.score, nodes:info.nodes});\n' +
+    '};\n' +
+    'function parseBin(buffer){\n' +
+    '  var view = new DataView(buffer);\n' +
+    '  var map = new Map();\n' +
+    '  for (var i = 0; i + 16 <= buffer.byteLength; i += 16) {\n' +
+    '    var keyHi = view.getUint32(i, false);\n' +
+    '    var keyLo = view.getUint32(i + 4, false);\n' +
+    '    var mv = view.getUint16(i + 8, false);\n' +
+    '    var w  = view.getUint16(i + 10, false);\n' +
+    '    var key = (keyHi>>>0) + ":" + (keyLo>>>0);\n' +
+    '    var arr = map.get(key);\n' +
+    '    if (!arr) { arr = []; map.set(key, arr); }\n' +
+    '    arr.push({mv:mv, w:w});\n' +
+    '  }\n' +
+    '  return map;\n' +
+    '}\n' +
+    'function pickBookMove(){\n' +
+    '  if (!book) return null;\n' +
+    '  if (!self.Engine.isPolyglotReady || !self.Engine.isPolyglotReady()) return null;\n' +
+    '  var key = self.Engine.polyglotHash();\n' +
+    '  if (!key) return null;\n' +
+    '  var entries = book.get(key);\n' +
+    '  if (!entries || !entries.length) return null;\n' +
+    '  var total = 0;\n' +
+    '  for (var j = 0; j < entries.length; j++) total += entries[j].w;\n' +
+    '  var r = Math.random() * total;\n' +
+    '  var chosen = entries[entries.length-1].mv;\n' +
+    '  for (var k = 0; k < entries.length; k++) {\n' +
+    '    r -= entries[k].w;\n' +
+    '    if (r <= 0) { chosen = entries[k].mv; break; }\n' +
+    '  }\n' +
+    '  var to = chosen & 63;\n' +
+    '  var from = (chosen >> 6) & 63;\n' +
+    '  var promo = (chosen >> 12) & 7;\n' +
+    '  var promoMap = [0, self.Engine.KNIGHT, self.Engine.BISHOP, self.Engine.ROOK, self.Engine.QUEEN];\n' +
+    '  var fromE = (7 - (from >> 3)) * 8 + (from & 7);\n' +
+    '  var toE   = (7 - (to   >> 3)) * 8 + (to   & 7);\n' +
+    '  var p = promoMap[promo] || 0;\n' +
+    '  var m = (fromE | (toE << 6) | (p << 12)) | 0;\n' +
+    '  var legal = self.Engine.legalMoves();\n' +
+    '  for (var l = 0; l < legal.length; l++) {\n' +
+    '    if (legal[l] === m) return m;\n' +
+    '    if (promo && (legal[l] & 0xFFF) === (m & 0xFFF)) return legal[l];\n' +
+    '  }\n' +
+    '  return null;\n' +
+    '}\n' +
+    'self.onmessage = function(e){\n' +
+    '  var d = e.data;\n' +
+    '  if (d.cmd === "setPolyglotConstants") {\n' +
+    '    self.Engine.setPolyglotConstants(d.data);\n' +
+    '    self.postMessage({type:"polyglotReady"});\n' +
+    '    return;\n' +
+    '  }\n' +
+    '  if (d.cmd === "loadBook") {\n' +
+    '    try { book = parseBin(d.buffer); } catch(err) { book = null; }\n' +
+    '    self.postMessage({type:"bookLoaded", count: book ? book.size : 0});\n' +
+    '  } else if (d.cmd === "setBookPlies") {\n' +
+    '    bookMaxPlies = d.value | 0;\n' +
+    '  } else if (d.cmd === "search") {\n' +
+    '    currentId = d.id;\n' +
+    '    self.Engine.setFen(d.fen, { prevHashes: d.prevHashes, newGame: d.newGame });\n' +
+    '    if (d.plyCount < bookMaxPlies) {\n' +
+    '      var bm = pickBookMove();\n' +
+    '      if (bm) {\n' +
+    '        self.postMessage({type:"bestmove", id:d.id, move:bm, score:0, depth:0, nodes:0, time:0, fromBook:true});\n' +
+    '        return;\n' +
+    '      }\n' +
+    '    }\n' +
+    '    var r = self.Engine.search(d.depth, d.timeLimit);\n' +
+    '    self.postMessage({type:"bestmove", id:d.id, move:r.move, score:r.score, depth:r.depth, nodes:r.nodes, time:r.time});\n' +
+    '  } else if (d.cmd === "stop") {\n' +
+    '    self.Engine.stopSearch();\n' +
+    '  }\n' +
+    '};';
+
+  var wURL = URL.createObjectURL(new Blob([workerSrc], {type:'application/javascript'}));
+  try {
+    worker = new Worker(wURL);
+    attachWorkerHandlers(worker);
+    return true;
+  } catch(e) {
+    console.warn('فشل إنشاء Worker:', e);
+    worker = null;
+    return false;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   البدء
+   ═══════════════════════════════════════════════════════════════ */
 buildBoard();
 E.setFen(E.START_FEN,{newGame:true});
 renderPieces();renderHighlights();updateStatus();
 stateTxt.textContent='دورك';
+
+setBookStatus('جاري تحميل ثوابت Polyglot...','loading');
+showProgress(true);
+
+waitForPolyglot().then(function(pg){
+  showProgress(false);
+
+  if(pg){
+    // طبق الثوابت على محرك الصفحة الرئيسية
+    E.setPolyglotConstants(pg);
+    setBookStatus('✓ ثوابت Polyglot جاهزة — جاري البحث عن الكتاب...','ok');
+  } else {
+    setBookStatus('⚠ polyglot-constants.js غير محمّل — الكتاب معطّل','');
+    // نكمل بدون كتاب
+  }
+
+  // ابنِ الـ Worker
+  var ok = buildWorker();
+  if(!ok){
+    setBookStatus('⚠ Worker غير مدعوم — سيُستخدم البحث المباشر','');
+  }
+
+  // إن كانت الثوابت جاهزة، أرسلها للـ Worker ثم ابحث عن الكتاب
+  if(pg && worker){
+    var arr = Array.from(pg);
+    worker.postMessage({cmd:'setPolyglotConstants', data: arr});
+
+    // ابدأ الكشف التلقائي
+    setTimeout(autoDetectBook, 300);
+  } else if(!pg){
+    // عطّل أزرار الكتاب
+    bookReloadBtn.disabled = true;
+    bookFileBtn.disabled = true;
+  }
+});
+
 })();
 </script>
 </body>
