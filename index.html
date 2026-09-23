@@ -1419,8 +1419,13 @@ global.Engine={
 /* ═══════════════════════════════════════════════════════════════
    🔧 الإعدادات — عدّل هذه المتغيرات
    ═══════════════════════════════════════════════════════════════ */
-var BOOK_FILE       = 'GG.bin';     // ← اسم ملف الكتاب الفعلي
-var BOOK_FALLBACKS  = ['book.bin', 'gm2001.bin', 'books/book.bin']; // احتياط
+// الكتاب يُحمَّل من GitHub مباشرة (يدعم CORS عبر redirect)
+var BOOK_FILE = 'https://github.com/gmcheems-org/free-opening-books/raw/main/books/bin/gm2001.bin';
+var BOOK_FALLBACKS = [
+  'GG.bin',
+  'book.bin',
+  'books/book.bin'
+];
 var DEFAULT_BOOK_PLIES = 20;        // 10 نقلات
 
 /* ═══════════════════════════════════════════════════════════════ */
