@@ -715,13 +715,13 @@ function evalKBBK(sK,wK){return 500+(6-EDGE_DIST[wK])*28+(7-chebyshev(sK,wK))*18
 function evalKPK(sK,wK,pS,color){
   var pFile=pS&7, pRank=pS>>3;
   var pawnRank=color===WHITE?(8-pRank):(pRank+1);
-  var promoRank=color===WHITE?8:1;
+  var promoRank=8;
   var ranksToPromo=Math.abs(promoRank-pawnRank);
   var sKRank=color===WHITE?(8-(sK>>3)):((sK>>3)+1);
   var wKRank=color===WHITE?(8-(wK>>3)):((wK>>3)+1);
   var distWkToPromo=Math.max(Math.abs((wK&7)-pFile),Math.abs(wKRank-promoRank));
   if(distWkToPromo>ranksToPromo+1)return 900;
-  var inFront=color===WHITE?(sKRank>pawnRank):(sKRank<pawnRank);
+  var inFront=sKRank>pawnRank;
   var keyRank=color===WHITE?(pawnRank+1):(pawnRank-1);
   var sKToKey=Math.max(Math.abs((sK&7)-pFile),Math.abs(sKRank-keyRank));
   var wKToKey=Math.max(Math.abs((wK&7)-pFile),Math.abs(wKRank-keyRank));
@@ -1279,7 +1279,7 @@ function search(maxDepth,timeMs){
   var legalMoves=generateLegalMoves();
   if(legalMoves.length===0)return{move:0,score:0,depth:0,nodes:0,time:0};
   if(legalMoves.length===1)return{move:legalMoves[0],score:0,depth:1,nodes:0,time:0};
-    var bestMove=0,bestScore=0,completedDepth=0,prevBest=0,noProgress=-1;
+    var bestMove=legalMoves[0],bestScore=0,completedDepth=0,prevBest=0,noProgress=-1;
   for(var d=1;d<=maxDepth;d++){
     rootDepthLimit=d;
     var alpha=-INF,beta=INF;
