@@ -968,7 +968,7 @@ function seeFindLVA(sq,color,remLo,remHi){
   var b=board;
   var pwn=pc(PAWN,color),kn=pc(KNIGHT,color),kg=pc(KING,color);
   var bsh=pc(BISHOP,color),rk=pc(ROOK,color),qn=pc(QUEEN,color);
-  var p1=ATK_PAWN[color][sq];
+  var p1=ATK_PAWN[color^1][sq];
   for(var i=0,L=p1.length;i<L;i++){var s=p1[i];
     if(s<32?(remLo>>>s)&1:(remHi>>>(s-32))&1)continue;
     if(b[s]===pwn)return s|(PAWN<<6);}
@@ -1874,13 +1874,27 @@ bookPliesSel.addEventListener('change',function(){
    ═══════════════════════════════════════════════════════════════ */
 function waitForPolyglot(){
   return new Promise(function(resolve){
-    // 1) جاهزة فوراً؟
-    if(window.POLYGLOT_RANDOM && window.POLYGLOT_RANDOM.length >= 1562){
-      return resolve(window.POLYGLOT_RANDOM);
+    // 1) جاهزة فوراً؟ (ندعم الشكلين: مسطّح 1562، أو أزواج 781)
+    var pg = window.POLYGLOT_RANDOM;
+    if(pg){
+      var isFlat   = (pg.length >= 1562) && (typeof pg[0] === 'number');
+      var isPaired = (pg.length >= 781)  && Array.isArray(pg[0]);
+      if(isFlat || isPaired){
+        return resolve(pg);
+      }
     }
     // 2) في انتظار Promise؟
     if(window.POLYGLOT_RANDOM_PROMISE){
-      return window.POLYGLOT_RANDOM_PROMISE.then(resolve).catch(function(){ resolve(null); });
+      return window.POLYGLOT_RANDOM_PROMISE.then(function(data){
+        // حتى بعد حل الـ Promise، أعد الفحص بنفس المنطق
+        var p = data || window.POLYGLOT_RANDOM;
+        if(p){
+          var okFlat   = (p.length >= 1562) && (typeof p[0] === 'number');
+          var okPaired = (p.length >= 781)  && Array.isArray(p[0]);
+          if(okFlat || okPaired) return resolve(p);
+        }
+        resolve(null);
+      }).catch(function(){ resolve(null); });
     }
     // 3) لا يوجد polyglot-constants.js
     resolve(null);
