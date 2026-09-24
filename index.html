@@ -863,9 +863,9 @@ function evaluate(){
     var blocked=false;
     for(var ff=f-1;ff<=f+1&&!blocked;ff++){if(ff<0||ff>7)continue;if(bPawnMin[ff]<r)blocked=true;}
     if(!blocked){var adv=7-r;mgW+=PASSED_MG[adv];egW+=PASSED_EG[adv];}
-    var sup=false;
-    if(f>0&&wPawnCnt[f-1]>0&&wPawnMax[f-1]>=r-1)sup=true;
-    if(f<7&&wPawnCnt[f+1]>0&&wPawnMax[f+1]>=r-1)sup=true;
+        var sup=false;
+    if(f>0&&wPawnCnt[f-1]>0&&wPawnMax[f-1]===r)sup=true;
+    if(f<7&&wPawnCnt[f+1]>0&&wPawnMax[f+1]===r)sup=true;
     if(sup){mgW+=CONNECTED_MG;egW+=CONNECTED_EG;}
   }
   for(i=0;i<bNP;i++){
@@ -874,9 +874,9 @@ function evaluate(){
     var blocked2=false;
     for(var ff2=f-1;ff2<=f+1&&!blocked2;ff2++){if(ff2<0||ff2>7)continue;if(wPawnMax[ff2]>r)blocked2=true;}
     if(!blocked2){var adv2=r;mgB+=PASSED_MG[adv2];egB+=PASSED_EG[adv2];}
-    var sup2=false;
-    if(f>0&&bPawnCnt[f-1]>0&&bPawnMin[f-1]<=r+1)sup2=true;
-    if(f<7&&bPawnCnt[f+1]>0&&bPawnMin[f+1]<=r+1)sup2=true;
+       var sup2=false;
+    if(f>0&&bPawnCnt[f-1]>0&&bPawnMin[f-1]===r)sup2=true;
+    if(f<7&&bPawnCnt[f+1]>0&&bPawnMin[f+1]===r)sup2=true;
     if(sup2){mgB+=CONNECTED_MG;egB+=CONNECTED_EG;}
   }
   if(wBishop>=2){mgW+=30;egW+=50;}
@@ -1279,7 +1279,7 @@ function search(maxDepth,timeMs){
   var legalMoves=generateLegalMoves();
   if(legalMoves.length===0)return{move:0,score:0,depth:0,nodes:0,time:0};
   if(legalMoves.length===1)return{move:legalMoves[0],score:0,depth:1,nodes:0,time:0};
-  var bestMove=legalMoves[0],bestScore=0,completedDepth=0,prevBest=0,noProgress=0;
+    var bestMove=0,bestScore=0,completedDepth=0,prevBest=0,noProgress=-1;
   for(var d=1;d<=maxDepth;d++){
     rootDepthLimit=d;
     var alpha=-INF,beta=INF;
@@ -1301,7 +1301,7 @@ function search(maxDepth,timeMs){
     var elapsed=Date.now()-startTime;
     if(timeMs&&timeMs>0){
       if(elapsed>timeMs*0.45)break;
-      if(noProgress>=2&&elapsed>timeMs*0.25)break;
+            if(noProgress>=3&&elapsed>timeMs*0.30)break;
       var expected=elapsed*3;
       if(elapsed+expected>timeMs*0.9)break;
     }
