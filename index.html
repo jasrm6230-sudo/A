@@ -495,7 +495,9 @@ var RAY_ROOK=new Array(64);
 
 function isAttacked(sq,by){
   var b=board,p;
-  var p1=ATK_PAWN[by][sq], pwn=pc(PAWN,by);
+  // ATK_PAWN[by][s] = المربعات التي يهاجمها بيدق لونه by من s
+  // للعثور على بيادق by التي تهاجم sq، نستخدم الجدول المعاكس (by^1)
+  var p1=ATK_PAWN[by^1][sq], pwn=pc(PAWN,by);
   for(var i=0,L=p1.length;i<L;i++)if(b[p1[i]]===pwn)return true;
   var n1=ATK_KNIGHT[sq], kn=pc(KNIGHT,by);
   for(var i2=0,L2=n1.length;i2<L2;i2++)if(b[n1[i2]]===kn)return true;
